@@ -9,7 +9,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/EnGeL-322/Tienda-DEMO-Terminado.git # repositorio
+          uri: https://github.com/EnGeL-322/tienda-modificado.git # repositorio
           searchPaths:
             - config-data
           default-label: main
