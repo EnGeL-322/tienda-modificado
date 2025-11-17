@@ -1,0 +1,98 @@
+:host {
+  display: block;
+}
+
+/* Reutiliza el mismo estilo general de page-container/page-card si ya lo tienes
+   en un SCSS global. Si no, esto da un look consistente. */
+
+.page-container {
+  padding: 0.75rem 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  .page-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 0;
+  }
+}
+
+.page-card {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  padding: 1rem 1.1rem;
+}
+
+.page-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  .page-card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .page-card-subtitle {
+    font-size: 0.8rem;
+    color: #9ca3af;
+  }
+}
+
+.page-toolbar {
+  min-width: 220px;
+}
+
+.page-table {
+  font-size: 0.86rem;
+
+  thead {
+    background: #f9fafb;
+
+    th {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.badge-status-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.badge-status-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-status-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}

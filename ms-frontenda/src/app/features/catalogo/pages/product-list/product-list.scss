@@ -1,0 +1,109 @@
+:host {
+  display: block;
+}
+
+/* Ajustes generales para esta página */
+.product-list-page {
+  .page-header {
+    margin-bottom: 1.25rem;
+  }
+}
+
+/* Tabla principal */
+.page-table {
+  font-size: 0.86rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  thead {
+    background: #f9fafb;
+
+    th {
+      border-bottom-width: 1px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b7280;
+      background: #f9fafb;
+    }
+  }
+
+  tbody tr.product-row {
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      background-color: #f3f4ff;
+      box-shadow: 0 0 0 1px #e5e7eb;
+    }
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+/* Badge estado */
+.badge-status {
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid transparent;
+}
+
+.badge-status-success {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.badge-status-secondary {
+  background: #e5e7eb;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+/* puntito de estado */
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.dot-success {
+  background-color: #22c55e;
+}
+
+.dot-secondary {
+  background-color: #9ca3af;
+}
+
+/* Badge categoría */
+.badge.bg-soft-blue {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+/* Acciones */
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+
+  .btn-sm {
+    padding-inline: 0.4rem;
+  }
+}
+
+/* Empty state */
+.empty-state {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 2rem;
+}

@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+/* Card del formulario */
+.product-form-card {
+  .form-section-title {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+
+  .form-label-sm {
+    font-size: 0.8rem;
+    color: #4b5563;
+    margin-bottom: 0.15rem;
+  }
+
+  .form-control-sm,
+  textarea.form-control-sm {
+    font-size: 0.85rem;
+  }
+}
+
+/* Ajustar espaciado en desktop */
+@media (min-width: 992px) {
+  .product-form-card .row.g-3 {
+    margin-top: 0.25rem;
+  }
+}

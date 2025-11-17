@@ -1,0 +1,137 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h4 mb-0">Nueva venta</h2>
+      <small class="text-muted">Registra una venta con varios productos (carrito).</small>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <!-- Mensajes -->
+      <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+      </div>
+      <div *ngIf="success" class="alert alert-success d-flex justify-content-between align-items-center">
+        <span>{{ success }}</span>
+        <button
+          *ngIf="lastSale"
+          type="button"
+          class="btn btn-sm btn-outline-light"
+          (click)="goToDetail()"
+        >
+          Ver detalle
+        </button>
+      </div>
+
+      <!-- Datos del cliente -->
+      <form (ngSubmit)="submit()" novalidate>
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Cliente *</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="customerName"
+              name="customerName"
+              placeholder="Nombre del cliente"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Carrito -->
+        <div class="table-responsive mb-3">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+              <th style="width: 25%">SKU</th>
+              <th style="width: 20%">Cantidad</th>
+              <th style="width: 20%">P. Unitario</th>
+              <th style="width: 20%" class="text-end">Subtotal</th>
+              <th style="width: 15%"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let item of items; let i = index">
+              <td>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  [(ngModel)]="item.productSku"
+                  name="sku-{{ i }}"
+                  placeholder="SKU"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  min="1"
+                  class="form-control form-control-sm text-end"
+                  [(ngModel)]="item.quantity"
+                  name="qty-{{ i }}"
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  class="form-control form-control-sm text-end"
+                  [(ngModel)]="item.unitPrice"
+                  name="price-{{ i }}"
+                />
+              </td>
+              <td class="text-end fw-semibold">
+                {{ itemSubtotal(item) | number : '1.2-2' }}
+              </td>
+              <td class="text-end">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="removeItem(i)"
+                  [disabled]="items.length === 1"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Total y botones -->
+        <div class="d-flex justify-content-between align-items-center">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="addItem()"
+            [disabled]="loading"
+          >
+            <i class="bi bi-plus-lg me-1"></i>
+            Agregar producto
+          </button>
+
+          <div class="d-flex align-items-center gap-3">
+            <div class="fw-semibold fs-5">
+              Total: {{ total | number : '1.2-2' }}
+            </div>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="loading"
+            >
+              <span
+                *ngIf="loading"
+                class="spinner-border spinner-border-sm me-2"
+              ></span>
+              Registrar venta
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <p class="text-muted small mt-2 mb-0">* Campos obligatorios</p>
+</div>

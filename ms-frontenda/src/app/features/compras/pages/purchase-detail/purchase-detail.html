@@ -1,0 +1,110 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h4 mb-0">Detalle de compra</h2>
+      <small class="text-muted">Información de la orden de compra.</small>
+    </div>
+
+    <button
+      *ngIf="canReceive()"
+      class="btn btn-success"
+      (click)="receive()"
+      [disabled]="receiving"
+    >
+      <span
+        *ngIf="receiving"
+        class="spinner-border spinner-border-sm me-2"
+      ></span>
+      Marcar como recibida
+    </button>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border" role="status"></div>
+        <p class="mt-2 mb-0">Cargando compra...</p>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger mb-0">
+        {{ error }}
+      </div>
+
+      <div *ngIf="receiveError" class="alert alert-danger mb-3">
+        {{ receiveError }}
+      </div>
+
+      <ng-container *ngIf="!loading && !error && order as o">
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <p class="mb-1">
+              <span class="text-muted">N° Orden:</span>
+              <span class="fw-semibold ms-1">#{{ o.id }}</span>
+            </p>
+            <p class="mb-1">
+              <span class="text-muted">Proveedor:</span>
+              <span class="fw-semibold ms-1">
+                {{ o.supplierName }}
+              </span>
+            </p>
+          </div>
+
+          <div class="col-md-4">
+            <p class="mb-1">
+              <span class="text-muted">Estado:</span>
+              <span
+                class="badge ms-1"
+                [ngClass]="{
+                  'bg-secondary': o.status === 'PENDING',
+                  'bg-success': o.status === 'RECEIVED',
+                  'bg-danger': o.status === 'CANCELLED'
+                }"
+              >
+                {{ o.status }}
+              </span>
+            </p>
+            <p class="mb-1">
+              <span class="text-muted">Creada:</span>
+              {{ o.createdAt | date : 'short' }}
+            </p>
+            <p class="mb-1" *ngIf="o.receivedAt">
+              <span class="text-muted">Recibida:</span>
+              {{ o.receivedAt | date : 'short' }}
+            </p>
+          </div>
+
+          <div class="col-md-4 text-md-end">
+            <p class="mb-1 fs-5 fw-semibold">
+              Total: {{ total | number : '1.2-2' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+              <th>SKU</th>
+              <th class="text-end">Cantidad</th>
+              <th class="text-end">P. Unitario</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let item of o.items">
+              <td>{{ item.productSku }}</td>
+              <td class="text-end">{{ item.quantity }}</td>
+              <td class="text-end">
+                {{ item.unitPrice | number : '1.2-2' }}
+              </td>
+              <td class="text-end">
+                {{ item.quantity * item.unitPrice | number : '1.2-2' }}
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

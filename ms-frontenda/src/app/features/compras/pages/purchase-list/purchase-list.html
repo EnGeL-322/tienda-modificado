@@ -1,0 +1,124 @@
+<div class="page-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Compras</h2>
+      <p class="page-subtitle">
+        Historial de órdenes de compra realizadas al proveedor.
+      </p>
+    </div>
+
+    <button class="btn btn-primary btn-sm" type="button" (click)="goToNew()">
+      <i class="bi bi-plus-circle me-1"></i>
+      Nueva compra
+    </button>
+  </div>
+
+  <!-- CARD PRINCIPAL -->
+  <div class="page-card">
+    <!-- Toolbar: filtros -->
+    <div class="page-card-header">
+      <div>
+        <div class="page-card-title">Listado</div>
+        <div class="page-card-subtitle">
+          {{ purchases.length }} compra(s) registradas.
+        </div>
+      </div>
+
+      <div class="page-toolbar gap-2">
+        <!-- Filtro por estado -->
+        <select
+          class="form-select form-select-sm w-auto"
+          [(ngModel)]="statusFilter"
+          (ngModelChange)="onStatusChange($event)"
+        >
+          <option value="">Todos los estados</option>
+          <option value="PENDING">Pendientes</option>
+          <option value="RECEIVED">Recibidas</option>
+          <option value="CANCELLED">Canceladas</option>
+        </select>
+
+        <!-- Buscador -->
+        <div class="input-group input-group-sm">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar por #orden o proveedor"
+            [(ngModel)]="search"
+            (ngModelChange)="onSearchChange()"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Estados -->
+    <ng-container *ngIf="loading">
+      <div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        <p class="text-muted mt-2 mb-0">Cargando compras...</p>
+      </div>
+    </ng-container>
+
+    <div *ngIf="error" class="alert alert-danger mb-2">
+      {{ error }}
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive" *ngIf="!loading && !error">
+      <table class="table page-table align-middle">
+        <thead>
+        <tr>
+          <th style="width: 10%">#</th>
+          <th style="width: 30%">Proveedor</th>
+          <th style="width: 15%">Estado</th>
+          <th style="width: 20%">Creada</th>
+          <th style="width: 15%" class="text-end">Total</th>
+          <th style="width: 10%" class="text-end">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let p of filtered">
+          <td class="fw-semibold">#{{ p.id }}</td>
+          <td>{{ p.supplierName }}</td>
+          <td>
+              <span
+                class="badge-status"
+                [ngClass]="{
+                  'badge-status-secondary': p.status === 'PENDING',
+                  'badge-status-success': p.status === 'RECEIVED',
+                  'badge-status-danger': p.status === 'CANCELLED'
+                }"
+              >
+                {{ p.status }}
+              </span>
+          </td>
+          <td>
+            {{ p.createdAt | date : 'short' }}
+          </td>
+          <td class="text-end fw-semibold">
+            {{ totalOf(p) | number : '1.2-2' }}
+          </td>
+          <td class="text-end">
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              type="button"
+              (click)="goToDetail(p)"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="filtered.length === 0">
+          <td colspan="6" class="text-center text-muted py-3">
+            No se encontraron compras para los filtros actuales.
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

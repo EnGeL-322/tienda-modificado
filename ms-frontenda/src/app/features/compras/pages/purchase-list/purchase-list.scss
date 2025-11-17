@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.page-table {
+  font-size: 0.86rem;
+
+  thead {
+    background: #f9fafb;
+  }
+}
+
+.badge-status {
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.badge-status-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-status-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.badge-status-danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}

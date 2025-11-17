@@ -1,0 +1,83 @@
+<div class="dashboard-page">
+  <div
+    class="card shadow-sm border-0 mb-3 header-card d-flex flex-wrap justify-content-between align-items-center gap-2"
+  >
+    <div class="card-body p-3">
+      <h2 class="h5 mb-1">Panel principal</h2>
+      <p class="text-muted mb-0">
+        Selecciona un módulo desde el menú de la izquierda o desde estas
+        tarjetas rápidas.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Catálogo -->
+    <div class="col-sm-6 col-lg-3">
+      <a routerLink="/catalogo/productos" class="text-decoration-none">
+        <div class="card dashboard-card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="dashboard-icon catalogo mb-3">
+              <span>📦</span>
+            </div>
+            <h5 class="card-title mb-1">Catálogo</h5>
+            <p class="card-text text-muted mb-0">
+              Gestiona los productos del hotel.
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Inventario -->
+    <div class="col-sm-6 col-lg-3">
+      <a routerLink="/inventario" class="text-decoration-none">
+        <div class="card dashboard-card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="dashboard-icon inventario mb-3">
+              <span>📊</span>
+            </div>
+            <h5 class="card-title mb-1">Inventario</h5>
+            <p class="card-text text-muted mb-0">
+              Consulta stock y movimientos.
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Compras -->
+    <div class="col-sm-6 col-lg-3">
+      <a routerLink="/compras" class="text-decoration-none">
+        <div class="card dashboard-card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="dashboard-icon compras mb-3">
+              <span>🧾</span>
+            </div>
+            <h5 class="card-title mb-1">Compras</h5>
+            <p class="card-text text-muted mb-0">
+              Registra nuevas órdenes de compra.
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Ventas -->
+    <div class="col-sm-6 col-lg-3">
+      <a routerLink="/ventas" class="text-decoration-none">
+        <div class="card dashboard-card shadow-sm border-0 h-100">
+          <div class="card-body">
+            <div class="dashboard-icon ventas mb-3">
+              <span>💳</span>
+            </div>
+            <h5 class="card-title mb-1">Ventas</h5>
+            <p class="card-text text-muted mb-0">
+              Registra ventas con carrito.
+            </p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="h4 mb-0">Inventario</h2>
+      <small class="text-muted">Consulta de stock y movimientos por SKU</small>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <form
+        class="row g-2 align-items-center"
+        (ngSubmit)="search()"
+        novalidate
+      >
+        <div class="col-md-4">
+          <label class="form-label mb-1">SKU del producto</label>
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="sku"
+            name="sku"
+            placeholder="Ej: PROD-001"
+          />
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search me-1"></i>
+            Buscar
+          </button>
+        </div>
+      </form>
+
+      <div *ngIf="error" class="alert alert-danger mt-3 mb-0">
+        {{ error }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock actual -->
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h5 class="card-title h6 mb-3">Stock actual</h5>
+
+          <div *ngIf="loadingStock" class="text-center py-3">
+            <div class="spinner-border" role="status"></div>
+          </div>
+
+          <div *ngIf="!loadingStock && inventory">
+            <p class="mb-1">
+              <span class="text-muted">SKU:</span>
+              <span class="fw-semibold">{{ inventory.productSku }}</span>
+            </p>
+            <p class="mb-1">
+              <span class="text-muted">Ubicación:</span>
+              <span>{{ inventory.location || 'No especificada' }}</span>
+            </p>
+            <p class="mb-0 fs-5">
+              <span class="text-muted">Cantidad:</span>
+              <span class="fw-bold ms-1">{{ inventory.quantity }}</span>
+            </p>
+          </div>
+
+          <div
+            *ngIf="!loadingStock && !inventory && !error"
+            class="text-muted small"
+          >
+            Busca un SKU para ver su stock.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movimientos -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title h6 mb-0">Movimientos de inventario</h5>
+          </div>
+
+          <div *ngIf="loadingMovements" class="text-center py-3">
+            <div class="spinner-border" role="status"></div>
+            <p class="mt-2 mb-0">Cargando movimientos...</p>
+          </div>
+
+          <div *ngIf="!loadingMovements">
+            <div
+              *ngIf="movements.length === 0 && inventory"
+              class="text-muted small py-3"
+            >
+              No hay movimientos registrados para este producto.
+            </div>
+
+            <div class="table-responsive" *ngIf="movements.length > 0">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th class="text-end">Cantidad</th>
+                  <th>Referencia</th>
+                  <th>Motivo</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let m of movements">
+                  <td>
+                    {{ m.createdAt | date : 'short' }}
+                  </td>
+                  <td>
+                      <span class="badge" [ngClass]="badgeClass(m.type)">
+                        {{ m.type }}
+                      </span>
+                  </td>
+                  <td class="text-end fw-semibold">
+                    {{ m.quantity }}
+                  </td>
+                  <td>{{ m.reference || '-' }}</td>
+                  <td>{{ m.reason || '-' }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div
+              *ngIf="!inventory && !loadingMovements && !error"
+              class="text-muted small py-3"
+            >
+              Busca un SKU para ver sus movimientos.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

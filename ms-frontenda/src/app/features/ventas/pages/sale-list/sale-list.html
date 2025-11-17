@@ -1,0 +1,111 @@
+<div class="page-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Ventas</h2>
+      <p class="page-subtitle">
+        Consulta las ventas registradas y accede al detalle de cada una.
+      </p>
+    </div>
+
+    <button class="btn btn-primary btn-sm" type="button" (click)="goToNew()">
+      <i class="bi bi-plus-circle me-1"></i>
+      Nueva venta
+    </button>
+  </div>
+
+  <!-- CARD PRINCIPAL -->
+  <div class="page-card">
+    <!-- Toolbar: buscador + info -->
+    <div class="page-card-header">
+      <div>
+        <div class="page-card-title">Listado de ventas</div>
+        <div class="page-card-subtitle">
+          {{ sales.length }} venta(s) registradas.
+        </div>
+      </div>
+
+      <div class="page-toolbar">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar por cliente, estado o ID"
+            [(ngModel)]="search"
+            (ngModelChange)="onSearchChange()"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Estados -->
+    <ng-container *ngIf="loading">
+      <div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm" role="status"></div>
+        <p class="text-muted mt-2 mb-0">Cargando ventas...</p>
+      </div>
+    </ng-container>
+
+    <div *ngIf="error" class="alert alert-danger mb-2">
+      {{ error }}
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive" *ngIf="!loading && !error">
+      <table class="table page-table align-middle">
+        <thead>
+        <tr>
+          <th style="width: 70px;">ID</th>
+          <th>Cliente</th>
+          <th class="text-center">Estado</th>
+          <th class="text-center">Fecha</th>
+          <th class="text-end">Total</th>
+          <th class="text-end" style="width: 80px;">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let s of filtered">
+          <td class="fw-semibold">#{{ s.id }}</td>
+          <td>{{ s.customerName }}</td>
+          <td class="text-center">
+              <span
+                class="badge-status"
+                [ngClass]="{
+                  'badge-status-secondary': s.status === 'PENDING',
+                  'badge-status-success': s.status === 'COMPLETED',
+                  'badge-status-danger': s.status === 'CANCELLED'
+                }"
+              >
+                {{ s.status }}
+              </span>
+          </td>
+          <td class="text-center">
+            {{ s.createdAt | date : 'short' }}
+          </td>
+          <td class="text-end">
+            {{ saleTotal(s) | number : '1.2-2' }}
+          </td>
+          <td class="text-end">
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              type="button"
+              (click)="openDetail(s)"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="filtered.length === 0">
+          <td colspan="6" class="text-center text-muted py-3">
+            No se encontraron ventas para la búsqueda actual.
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
