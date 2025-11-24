@@ -9,12 +9,12 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/kevinraf/ACAD-ONECH.git # repositorio
+          uri: https://github.com/EnGeL-322/tienda-modificado.git # repositorio
           searchPaths:
             - config-data
-          default-label: ONESAN
+          default-label: main
 
   security:
     user:
-      name: daisqui
-      password: onichan
+      name: root
+      password: 123456

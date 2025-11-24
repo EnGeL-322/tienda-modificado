@@ -4,4 +4,4 @@ spring:
   profiles:
     active: development
   config:
-    import: optional:configserver:http://daisqui:onichan@localhost:6065
+    import: optional:configserver:http://root:123456@localhost:6065
