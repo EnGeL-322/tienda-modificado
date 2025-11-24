@@ -2,32 +2,151 @@
   display: block;
 }
 
-/* Card del formulario */
-.product-form-card {
-  .form-section-title {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #6b7280;
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-  }
-
-  .form-label-sm {
-    font-size: 0.8rem;
-    color: #4b5563;
-    margin-bottom: 0.15rem;
-  }
-
-  .form-control-sm,
-  textarea.form-control-sm {
-    font-size: 0.85rem;
-  }
+/* Fondo suave en la página del formulario */
+.product-form-page {
+  background: radial-gradient(circle at top left, #e3f2fd 0, #ffffff 45%);
 }
 
-/* Ajustar espaciado en desktop */
-@media (min-width: 992px) {
-  .product-form-card .row.g-3 {
-    margin-top: 0.25rem;
-  }
+/* Header del formulario */
+.product-form-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-title {
+  margin-bottom: 0.15rem;
+}
+
+.page-subtitle {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Chip de "Catálogo" */
+.page-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0d6efd, #20c997);
+  color: #ffffff;
+  box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.35);
+}
+
+/* Botón volver con un poco más de estilo */
+.btn-back {
+  border-radius: 999px;
+}
+
+/* Card principal del formulario */
+.product-form-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+  box-shadow: 0 0.4rem 0.9rem rgba(15, 23, 42, 0.04);
+  border-top: 3px solid #0d6efd;
+  transition: box-shadow 0.12s ease, transform 0.08s ease;
+}
+
+.product-form-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.5rem 1rem rgba(15, 23, 42, 0.06);
+}
+
+/* Título de sección (Datos básicos / Detalles adicionales) */
+.form-section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6c757d;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.section-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background-color: #e9f2ff;
+  font-size: 0.85rem;
+}
+
+/* Labels pequeños */
+.form-label-sm {
+  font-size: 0.8rem;
+}
+
+/* Inputs y textarea */
+.product-form-card .form-control-sm,
+.product-form-card textarea.form-control-sm {
+  border-radius: 0.6rem;
+  border-color: #e0e7ff;
+  font-size: 0.9rem;
+}
+
+.product-form-card .form-control-sm:focus,
+.product-form-card textarea.form-control-sm:focus {
+  box-shadow: 0 0 0 0.12rem rgba(13, 110, 253, 0.15);
+  border-color: #0d6efd;
+}
+/* Hace que el fondo general del form se vea suave */
+.product-form-page {
+  background: radial-gradient(circle at top left, #e3f2fd 0, #ffffff 45%);
+}
+
+/* Card del formulario (ya lo tienes, por si no lo copiaste antes) */
+.product-form-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+  box-shadow: 0 0.4rem 0.9rem rgba(15, 23, 42, 0.04);
+  border-top: 3px solid #0d6efd;
+}
+
+/* 🔹 AQUÍ VIENE LA MAGIA DE LOS INPUTS REDONDITOS 🔹 */
+
+.product-form-card .form-control-sm,
+.product-form-card textarea.form-control-sm {
+  border-radius: 999px;              /* súper redondito */
+  border: 1px solid #e0e7ff;         /* borde suave azulito */
+  background-color: #f8fafc;         /* fondo clarito */
+  font-size: 0.9rem;
+  padding-inline: 0.9rem;            /* espacio horizontal */
+}
+
+/* El textarea no puede ser completamente pill, lo hacemos un poco menos */
+.product-form-card textarea.form-control-sm {
+  border-radius: 0.9rem;             /* redondeado pero tipo tarjeta */
+  padding-top: 0.6rem;
+}
+
+/* Efecto al enfocar (click en el input) */
+.product-form-card .form-control-sm:focus,
+.product-form-card textarea.form-control-sm:focus {
+  background-color: #ffffff;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.12rem rgba(13, 110, 253, 0.18);
+}
+
+/* Para que el placeholder se vea más suave */
+.product-form-card .form-control-sm::placeholder,
+.product-form-card textarea.form-control-sm::placeholder {
+  color: #9ca3af;
+  font-size: 0.82rem;
+}
+
+/* Labels pequeños (ya los usas) */
+.form-label-sm {
+  font-size: 0.8rem;
+  color: #4b5563;
 }

@@ -1,0 +1,366 @@
+<div class="container py-4 accounting-page">
+  <div class="d-flex justify-content-between align-items-center mb-3 page-header">
+    <div>
+      <h2 class="h4 mb-0">Contabilidad</h2>
+      <small class="text-muted">
+        Resumen de compras, ventas, ajustes y asientos contables.
+      </small>
+    </div>
+    <div class="page-chip d-none d-md-inline-flex">
+      Libro diario
+    </div>
+  </div>
+
+  <!-- FILTROS PRINCIPALES -->
+  <div class="card shadow-sm mb-3 filters-card">
+    <div class="card-body">
+      <form class="row g-3 align-items-end" novalidate>
+        <div class="col-md-3">
+          <label class="form-label">Desde</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            [(ngModel)]="from"
+            name="from"
+            (change)="onDatesChange()"
+          />
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Hasta</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            [(ngModel)]="to"
+            name="to"
+            (change)="onDatesChange()"
+          />
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Tipo de asiento</label>
+          <select
+            class="form-select form-select-sm"
+            [(ngModel)]="type"
+            name="type"
+            (change)="onTypeChange()"
+          >
+            <option value="">Todos</option>
+            <option value="COMPRA">Compra</option>
+            <option value="VENTA">Venta</option>
+            <option value="AJUSTE">Ajuste</option>
+          </select>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- RESUMEN + SALDO POR CUENTA -->
+  <div class="row g-3 mb-3">
+    <!-- Resumen general -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100 summary-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="h6 mb-0 card-title-small">Resumen del periodo</h5>
+            <div *ngIf="summaryLoading" class="small text-muted">
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Cargando...
+            </div>
+          </div>
+
+          <div *ngIf="summaryError" class="alert alert-danger py-2 mb-2">
+            {{ summaryError }}
+          </div>
+
+          <ng-container *ngIf="!summaryError && !summaryLoading && summary as s">
+            <p class="small text-muted mb-3">
+              Desde {{ s.from }} hasta {{ s.to }}.
+            </p>
+
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="border rounded p-2 bg-light stat-card stat-compras">
+                  <div class="small text-muted">Compras</div>
+                  <div class="fw-semibold">
+                    S/{{ s.totalPurchases | number : '1.2-2' }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="border rounded p-2 bg-light stat-card stat-ventas">
+                  <div class="small text-muted">Ventas</div>
+                  <div class="fw-semibold">
+                    S/{{ s.totalSales | number : '1.2-2' }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="border rounded p-2 bg-light stat-card stat-ajustes">
+                  <div class="small text-muted">Ajustes netos</div>
+                  <div class="fw-semibold">
+                    S/{{ s.totalAdjustments | number : '1.2-2' }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div
+                  class="border rounded p-2 bg-light stat-card stat-resultado"
+                  [ngClass]="{
+                    'border-success': s.profit >= 0,
+                    'border-danger': s.profit < 0
+                  }"
+                >
+                  <div class="small text-muted">
+                    Resultado (ganancia/pérdida)
+                  </div>
+                  <div
+                    class="fw-semibold"
+                    [ngClass]="{
+                      'text-success': s.profit >= 0,
+                      'text-danger': s.profit < 0
+                    }"
+                  >
+                    S/{{ s.profit | number : '1.2-2' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saldo por cuenta -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100 balance-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="h6 mb-0 card-title-small">Saldo por cuenta contable</h5>
+            <div *ngIf="accountLoading" class="small text-muted">
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Cargando...
+            </div>
+          </div>
+
+          <form class="row g-2 align-items-end mb-2" novalidate>
+            <div class="col-md-8">
+              <label class="form-label">Cuenta (nombre)</label>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                [(ngModel)]="accountName"
+                name="accountName"
+                placeholder="Ej: Inventarios, Caja, Ventas..."
+              />
+            </div>
+            <div class="col-md-4">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm w-100"
+                (click)="onAccountChange()"
+              >
+                Consultar saldo
+              </button>
+            </div>
+          </form>
+
+          <!-- Botones rápidos de cuentas -->
+          <div class="mb-2 quick-accounts">
+            <span class="small text-muted me-2">Rápidos:</span>
+            <button
+              *ngFor="let acc of quickAccounts"
+              type="button"
+              class="btn btn-sm btn-outline-secondary me-1 mb-1 quick-account-chip"
+              (click)="setQuickAccount(acc)"
+            >
+              {{ acc }}
+            </button>
+          </div>
+
+          <div *ngIf="accountError" class="alert alert-danger py-2 mb-2">
+            {{ accountError }}
+          </div>
+
+          <ng-container
+            *ngIf="!accountError && !accountLoading && accountBalance as ab"
+          >
+            <p class="small text-muted mb-1">
+              Cuenta: <strong>{{ ab.account }}</strong>
+              <span class="ms-2">
+                Código:
+                <strong>{{ getAccountCode(ab.account) }}</strong>
+              </span>
+            </p>
+            <p class="small text-muted mb-2">
+              {{ ab.from }} al {{ ab.to }}
+            </p>
+
+            <div class="border rounded p-2 balance-highlight">
+              <span
+                [ngClass]="{
+                  'text-success fw-semibold': ab.balance >= 0,
+                  'text-danger fw-semibold': ab.balance < 0
+                }"
+              >
+                S/{{ ab.balance | number : '1.2-2' }}
+              </span>
+            </div>
+          </ng-container>
+
+          <div
+            *ngIf="!accountLoading && !accountError && !accountBalance"
+            class="text-muted small mt-2"
+          >
+            Ingresa una cuenta y consulta su saldo.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSCADOR / FILTRO DE ASIENTOS -->
+  <div class="card shadow-sm mb-3 journal-card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="h6 mb-0 card-title-small">Asientos contables</h5>
+        <div *ngIf="entriesLoading" class="small text-muted">
+          <span class="spinner-border spinner-border-sm me-1"></span>
+          Cargando asientos...
+        </div>
+      </div>
+
+      <div *ngIf="entriesError" class="alert alert-danger py-2 mb-2">
+        {{ entriesError }}
+      </div>
+
+      <div class="row g-2 mb-2 journal-filters">
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Buscar</label>
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            [(ngModel)]="filter.search"
+            name="filterSearch"
+            placeholder="Filtrar por cuenta, tipo o descripción"
+            (ngModelChange)="onFilterChange()"
+          />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1">Monto mín.</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            [(ngModel)]="filter.minAmount"
+            name="filterMin"
+            (ngModelChange)="onFilterChange()"
+          />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1">Monto máx.</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            [(ngModel)]="filter.maxAmount"
+            name="filterMax"
+            (ngModelChange)="onFilterChange()"
+          />
+        </div>
+      </div>
+
+      <!-- LISTA AGRUPADA POR ASIENTO -->
+      <div *ngIf="!entriesLoading && !entriesError" class="journal-list">
+        <ng-container *ngIf="journalEntries && journalEntries.length; else noJournalEntries">
+          <div
+            *ngFor="let j of journalEntries"
+            class="mb-3 journal-entry border rounded p-2 bg-white"
+            [ngClass]="{
+              'journal-compra': j.type === 'COMPRA',
+              'journal-venta': j.type === 'VENTA',
+              'journal-ajuste': j.type === 'AJUSTE'
+            }"
+          >
+            <!-- Cabecera del asiento -->
+            <div class="d-flex justify-content-between align-items-center mb-2 journal-entry-header">
+              <div>
+                <div class="fw-semibold">
+                  <span class="journal-number-badge">
+                    {{ j.journalNumber }}
+                  </span>
+                  <span class="journal-type-label">
+                    {{ j.type === 'COMPRA' ? 'Compra'
+                    : j.type === 'VENTA' ? 'Venta'
+                      : j.type === 'AJUSTE' ? 'Ajuste' : j.type }}
+                  </span>
+                </div>
+                <div class="small text-muted">
+                  {{ j.date | date : 'short' }}
+                </div>
+              </div>
+
+              <div class="text-end">
+                <span class="badge bg-light text-dark border small journal-ref-badge">
+                  Ref: {{ j.referenceType || '-' }} {{ j.referenceId || '' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Detalle del asiento (las cuentas) -->
+            <div class="table-responsive">
+              <table class="table table-sm mb-0 journal-table">
+                <thead class="table-light">
+                <tr>
+                  <th style="width: 15%">Código</th>
+                  <th>Cuenta</th>
+                  <th class="text-end" style="width: 15%">Debe</th>
+                  <th class="text-end" style="width: 15%">Haber</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let l of j.lines">
+                  <td>{{ getAccountCode(l.account) }}</td>
+                  <td>{{ l.account }}</td>
+                  <td class="text-end">
+                    {{ l.debit ? (l.debit | number : '1.2-2') : '' }}
+                  </td>
+                  <td class="text-end">
+                    {{ l.credit ? (l.credit | number : '1.2-2') : '' }}
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Mensajes cuando no hay resultados -->
+        <ng-template #noJournalEntries>
+          <div *ngIf="entries && entries.length; else noEntriesAtAll"
+               class="text-center text-muted small py-3">
+            No hay asientos que coincidan con el filtro.
+          </div>
+          <ng-template #noEntriesAtAll>
+            <div class="text-center text-muted small py-3">
+              No hay asientos registrados en este rango.
+            </div>
+          </ng-template>
+        </ng-template>
+      </div>
+
+      <!-- Resumen de la tabla -->
+      <div
+        *ngIf="!entriesLoading && !entriesError && entries.length"
+        class="mt-2 small text-muted d-flex justify-content-between journal-footer"
+      >
+        <span>
+          Asientos mostrados:
+          <strong>{{ journalEntries.length || 0 }}</strong>
+        </span>
+        <span>
+          Monto total:
+          <strong>S/{{ totalEntriesAmount | number : '1.2-2' }}</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

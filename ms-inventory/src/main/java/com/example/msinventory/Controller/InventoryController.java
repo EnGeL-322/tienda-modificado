@@ -3,6 +3,7 @@ package com.example.msinventory.Controller;
 import com.example.msinventory.Dto.InventoryDto;
 import com.example.msinventory.Dto.MovementDto;
 import com.example.msinventory.Dto.StockUpdateRequest;
+import com.example.msinventory.Entity.Inventory;
 import com.example.msinventory.Service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,9 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
-    @GetMapping("/{productSku}")
-    public ResponseEntity<InventoryDto> getStock(@PathVariable String productSku) {
-        return ResponseEntity.ok(inventoryService.getStock(productSku));
+    @GetMapping("/{sku}")
+    public Inventory getStock(@PathVariable String sku) {
+        return inventoryService.getStock(sku);
     }
 
     @PostMapping("/update")

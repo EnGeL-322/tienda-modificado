@@ -1,8 +1,10 @@
-// src/app/features/compras/pages/purchase-detail/purchase-detail.ts
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PurchaseService } from '../../services/purchase';
 import { PurchaseOrder } from '../../models/purchase-order.model';
+import {environment} from '../../../../../environments/environment';
+import { ProductService } from '../../../catalogo/services/product';
+import { Product } from '../../../catalogo/models/product.model';
 
 @Component({
   selector: 'app-purchase-detail',
@@ -12,14 +14,25 @@ import { PurchaseOrder } from '../../models/purchase-order.model';
 })
 export class PurchaseDetail implements OnInit {
   order: PurchaseOrder | null = null;
+
   loading = false;
   error: string | null = null;
+
   receiving = false;
   receiveError: string | null = null;
 
+  // 👇 datos de la empresa, solo front (boleta)
+  companyName = environment.companyName;
+  companyRuc = environment.companyRuc;
+  companyAddress = environment.companyAddress;
+
+  // 👇 NUEVO: mapa SKU → nombre
+  productNameBySku: Record<string, string> = {};
+
   constructor(
     private route: ActivatedRoute,
-    private purchaseService: PurchaseService
+    private purchaseService: PurchaseService,
+    private productService: ProductService   // 👈 inyectamos
   ) {}
 
   ngOnInit(): void {
@@ -30,14 +43,34 @@ export class PurchaseDetail implements OnInit {
     }
 
     const id = Number(idParam);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       this.error = 'ID de compra inválido';
       return;
     }
-
+    // 👇 además de la orden, cargamos productos
+    this.loadProductNames();
     this.loadOrder(id);
   }
-
+  private loadProductNames(): void {
+    this.productService.getAll().subscribe({
+      next: (products: Product[]) => {
+        this.productNameBySku = {};
+        (products || []).forEach((p) => {
+          if (p.sku) {
+            this.productNameBySku[p.sku] = p.name ?? '';
+          }
+        });
+      },
+      error: () => {
+        // si falla no rompemos nada, solo no habrá nombre
+        this.productNameBySku = {};
+      }
+    });
+  }
+  getProductName(sku?: string | null): string {
+    if (!sku) return '';
+    return this.productNameBySku[sku] ?? '';
+  }
   private loadOrder(id: number): void {
     this.loading = true;
     this.error = null;
@@ -48,8 +81,8 @@ export class PurchaseDetail implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.loading = false;
         this.error = 'No se pudo cargar la compra';
+        this.loading = false;
       },
     });
   }
@@ -61,26 +94,45 @@ export class PurchaseDetail implements OnInit {
       0
     );
   }
+  // 👉 IGV 18% sobre el subtotal (total actual)
+  get igv(): number {
+    return this.total * 0.18;
+  }
 
+// 👉 Total con IGV incluido
+  get totalConIgv(): number {
+    return this.total + this.igv;
+  }
   canReceive(): boolean {
-    return !!this.order && this.order.status === 'PENDING';
+    return !!this.order && this.order.status === 'PENDING' && !this.receiving;
   }
 
   receive(): void {
-    if (!this.order) return;
+    if (!this.order || this.receiving) return;
+
     this.receiving = true;
     this.receiveError = null;
 
     this.purchaseService.receive(this.order.id).subscribe({
-      next: (updated) => {
-        this.order = updated;
+      next: (order) => {
+        this.order = order;
         this.receiving = false;
       },
       error: () => {
-        this.receiving = false;
         this.receiveError =
           'No se pudo marcar la compra como recibida. Intente nuevamente.';
+        this.receiving = false;
       },
     });
+  }
+  // 🔹 Solo front: imprimir la boleta
+  print(): void {
+    window.print();
+  }
+
+  // 🔹 Solo front: "descargar PDF" (por ahora mismo que imprimir)
+  // Si luego tienes backend que devuelve PDF, aquí lo conectas.
+  downloadPdf(): void {
+    window.print(); // placeholder visual
   }
 }

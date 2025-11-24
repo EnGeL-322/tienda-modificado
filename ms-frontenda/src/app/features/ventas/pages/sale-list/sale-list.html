@@ -21,7 +21,7 @@
       <div>
         <div class="page-card-title">Listado de ventas</div>
         <div class="page-card-subtitle">
-          {{ sales.length }} venta(s) registradas.
+          {{ filtered.length }} venta(s) encontradas.
         </div>
       </div>
 
@@ -56,52 +56,55 @@
     <!-- Tabla -->
     <div class="table-responsive" *ngIf="!loading && !error">
       <table class="table page-table align-middle">
-        <thead>
+        <thead class="table-light">
         <tr>
-          <th style="width: 70px;">ID</th>
+          <th>#</th>
           <th>Cliente</th>
-          <th class="text-center">Estado</th>
-          <th class="text-center">Fecha</th>
-          <th class="text-end">Total</th>
-          <th class="text-end" style="width: 80px;">Acciones</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th class="text-end">Unidades</th>
+          <th class="text-end">Total S/.</th>
+          <th class="text-end">Acciones</th>
         </tr>
         </thead>
         <tbody>
+        <!-- 👇 usamos filtered para respetar el buscador -->
         <tr *ngFor="let s of filtered">
-          <td class="fw-semibold">#{{ s.id }}</td>
+          <td>{{ s.id }}</td>
           <td>{{ s.customerName }}</td>
-          <td class="text-center">
+          <td>{{ s.createdAt | date : 'short' }}</td>
+          <td>
               <span
-                class="badge-status"
+                class="badge"
                 [ngClass]="{
-                  'badge-status-secondary': s.status === 'PENDING',
-                  'badge-status-success': s.status === 'COMPLETED',
-                  'badge-status-danger': s.status === 'CANCELLED'
+                  'text-bg-secondary': s.status === 'PENDING',
+                  'text-bg-success': s.status === 'COMPLETED',
+                  'text-bg-danger': s.status === 'CANCELLED'
                 }"
               >
                 {{ s.status }}
               </span>
           </td>
-          <td class="text-center">
-            {{ s.createdAt | date : 'short' }}
+          <td class="text-end">
+            {{ getSaleItemCount(s) }}
           </td>
           <td class="text-end">
-            {{ saleTotal(s) | number : '1.2-2' }}
+            {{ getSaleTotal(s) | number : '1.2-2' }}
           </td>
           <td class="text-end">
             <button
-              class="btn btn-outline-secondary btn-sm"
+              class="btn btn-sm btn-outline-primary"
               type="button"
-              (click)="openDetail(s)"
+              (click)="goToDetail(s)"
             >
-              <i class="bi bi-eye"></i>
+              Ver
             </button>
           </td>
         </tr>
 
-        <tr *ngIf="filtered.length === 0">
-          <td colspan="6" class="text-center text-muted py-3">
-            No se encontraron ventas para la búsqueda actual.
+        <tr *ngIf="!loading && !error && filtered.length === 0">
+          <td colspan="7" class="text-center text-muted py-3">
+            No se encontraron ventas con ese criterio.
           </td>
         </tr>
         </tbody>

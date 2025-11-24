@@ -1,105 +1,317 @@
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+<!-- src/app/features/ventas/pages/sale-detail/sale-detail.html -->
+<div class="container py-4 sale-detail-page">
+
+  <!-- ENCABEZADO + ACCIONES (NO SE IMPRIME) -->
+  <div class="d-flex justify-content-between align-items-center mb-3 no-print">
     <div>
-      <h2 class="h4 mb-0">Detalle de venta</h2>
-      <small class="text-muted">Información de la venta seleccionada.</small>
+      <h2 class="h4 mb-0">
+        <i class="bi bi-receipt-cutoff me-2"></i>
+        Detalle de venta
+      </h2>
+      <small class="text-muted">
+        Boleta de la venta registrada en el sistema.
+      </small>
     </div>
 
-    <button
-      *ngIf="canComplete()"
-      class="btn btn-success btn-sm"
-      (click)="complete()"
-      [disabled]="completing"
-    >
-      <span
-        *ngIf="completing"
-        class="spinner-border spinner-border-sm me-1"
-      ></span>
-      Completar venta
-    </button>
+    <div class="d-flex flex-wrap gap-2 justify-content-end">
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        (click)="print()"
+        [disabled]="loading || !!error"
+      >
+        <i class="bi bi-printer me-1"></i>
+        Imprimir
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        (click)="downloadPdf()"
+        [disabled]="loading || !!error"
+      >
+        <i class="bi bi-file-earmark-pdf me-1"></i>
+        Descargar PDF
+      </button>
+
+      <button
+        *ngIf="canComplete()"
+        class="btn btn-success btn-sm"
+        (click)="complete()"
+        [disabled]="completing"
+      >
+        <span
+          *ngIf="completing"
+          class="spinner-border spinner-border-sm me-1"
+        ></span>
+        Completar venta
+      </button>
+    </div>
   </div>
 
-  <div class="card shadow-sm">
+  <!-- CARD BOLETA (SÍ SE IMPRIME) -->
+  <div class="card shadow-sm receipt-card print-area">
     <div class="card-body">
+      <!-- Loading -->
       <div *ngIf="loading" class="text-center py-4">
         <div class="spinner-border" role="status"></div>
         <p class="mt-2 mb-0">Cargando venta...</p>
       </div>
 
+      <!-- Error carga -->
       <div *ngIf="error" class="alert alert-danger mb-2">
         {{ error }}
       </div>
 
+      <!-- Error completar -->
       <div *ngIf="completeError" class="alert alert-danger mb-2">
         {{ completeError }}
       </div>
 
-      <ng-container *ngIf="!loading && !error && sale">
+      <!-- CONTENIDO BOLETA -->
+      <ng-container *ngIf="!loading && !error && sale as s">
+
+        <!-- Encabezado de la boleta (empresa / hotel) -->
+        <div class="receipt-header mb-3 pb-3 border-bottom">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="receipt-business-name">
+                {{ companyName }}
+              </div>
+              <p class="mb-1 small">
+                <span class="text-muted">RUC:</span>
+                <span class="fw-semibold ms-1">
+                  {{ companyRuc }}
+                </span>
+              </p>
+              <p class="mb-0 small">
+                <span class="text-muted">Dirección:</span>
+                <span class="ms-1">
+                  {{ companyAddress }}
+                </span>
+              </p>
+              <div class="small text-muted mt-1">
+                Boleta de venta
+              </div>
+            </div>
+
+            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+              <div class="receipt-number">
+                N° BOLETA:
+                <span class="fw-bold">V-{{ s.id }}</span>
+              </div>
+              <div class="small text-muted">
+                Fecha de emisión:
+                <span class="fw-semibold">
+                  {{ s.createdAt | date : 'short' }}
+                </span>
+              </div>
+              <div class="mt-1">
+                <span class="badge"
+                      [ngClass]="{
+                        'bg-success': s.status === 'COMPLETED',
+                        'bg-secondary': s.status === 'PENDING',
+                        'bg-danger': s.status === 'CANCELLED'
+                      }">
+                  {{ s.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datos de cliente + info venta -->
         <div class="row mb-3">
-          <div class="col-md-4">
-            <p class="mb-1">
-              <span class="text-muted">ID venta:</span>
-              <span class="fw-semibold">#{{ sale.id }}</span>
-            </p>
+          <div class="col-md-6">
+            <div class="receipt-section-title">
+              Datos del cliente
+            </div>
             <p class="mb-1">
               <span class="text-muted">Cliente:</span>
-              <span class="fw-semibold">{{ sale.customerName }}</span>
-            </p>
-          </div>
-          <div class="col-md-4">
-            <p class="mb-1">
-              <span class="text-muted">Estado:</span>
-              <span
-                class="badge"
-                [ngClass]="{
-                  'bg-success': sale.status === 'COMPLETED',
-                  'bg-secondary': sale.status === 'PENDING',
-                  'bg-danger': sale.status === 'CANCELLED'
-                }"
-              >
-                {{ sale.status }}
+              <span class="fw-semibold ms-1">
+                {{ s.customerName }}
               </span>
             </p>
+          </div>
+
+          <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <div class="receipt-section-title">
+              Información de la venta
+            </div>
             <p class="mb-1">
               <span class="text-muted">Creada:</span>
-              {{ sale.createdAt | date : 'short' }}
+              <span class="ms-1">
+                {{ s.createdAt | date : 'short' }}
+              </span>
             </p>
-            <p class="mb-1" *ngIf="sale.completedAt">
+            <p class="mb-1" *ngIf="s.completedAt">
               <span class="text-muted">Completada:</span>
-              {{ sale.completedAt | date : 'short' }}
+              <span class="ms-1">
+                {{ s.completedAt | date : 'short' }}
+              </span>
             </p>
-          </div>
-          <div class="col-md-4 text-md-end">
-            <p class="mb-1 fs-5 fw-semibold">
-              Total: {{ total | number : '1.2-2' }}
+            <p class="mb-0">
+              <span class="text-muted">Moneda:</span>
+              <span class="ms-1">Soles (S/)</span>
             </p>
           </div>
         </div>
 
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-            <tr>
-              <th>SKU</th>
-              <th class="text-end">Cantidad</th>
-              <th class="text-end">P. Unitario</th>
-              <th class="text-end">Subtotal</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr *ngFor="let item of sale.items">
-              <td>{{ item.productSku }}</td>
-              <td class="text-end">{{ item.quantity }}</td>
-              <td class="text-end">
-                {{ item.unitPrice | number : '1.2-2' }}
-              </td>
-              <td class="text-end">
-                {{ item.quantity * item.unitPrice | number : '1.2-2' }}
-              </td>
-            </tr>
-            </tbody>
-          </table>
+        <!-- Detalle de productos -->
+        <div class="receipt-items mb-3">
+          <div class="receipt-section-title mb-2">
+            Detalle de productos
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-borderless receipt-table mb-0">
+              <thead class="receipt-table-header">
+              <tr>
+                <th style="width: 10%">Ítem</th>
+                <th>SKU</th>
+                <th class="text-end" style="width: 15%">Cantidad</th>
+                <th class="text-end" style="width: 15%">P. Unitario</th>
+                <th class="text-end" style="width: 18%">Subtotal</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let item of s.items; index as i">
+                <td class="text-muted">
+                  {{ i + 1 }}
+                </td>
+                <td>
+                  <div class="fw-semibold">
+                    {{ item.productSku }}
+                    <span
+                      class="text-muted ms-1"
+                      *ngIf="getProductName(item.productSku)"
+                    >
+                      — {{ getProductName(item.productSku) }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="text-end">
+                  {{ item.quantity }}
+                </td>
+                <td class="text-end">
+                  {{ item.unitPrice | number : '1.2-2' }}
+                </td>
+                <td class="text-end">
+                  {{ item.quantity * item.unitPrice | number : '1.2-2' }}
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        <!-- Totales + observaciones -->
+        <div class="row align-items-start">
+          <div class="col-md-6">
+            <div class="small text-muted">
+              Observaciones:
+            </div>
+            <div class="receipt-notes">
+              — Venta registrada en el sistema PEPPIAN.<br />
+              — Este documento es un comprobante interno, no reemplaza la boleta
+              o factura legal emitida al cliente.
+            </div>
+          </div>
+
+          <div class="receipt-totals-box ms-md-auto">
+            <!-- Subtotal -->
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">Subtotal</span>
+              <span class="fw-semibold">
+                {{ total | number : '1.2-2' }}
+              </span>
+            </div>
+
+            <!-- IGV -->
+            <div class="d-flex justify-content-between mb-1">
+              <span class="text-muted">IGV (18%)</span>
+              <span class="fw-semibold">
+                {{ igv | number : '1.2-2' }}
+              </span>
+            </div>
+
+            <hr class="my-2" />
+
+            <!-- Total con IGV -->
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-semibold">TOTAL</span>
+              <span class="fs-5 fw-bold">
+                S/ {{ totalConIgv | number : '1.2-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ASIENTOS CONTABLES (solo pantalla, no se imprime) -->
+        <div class="mt-4 no-print">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="h6 mb-0">Asientos contables de esta venta</h5>
+            <div *ngIf="accountingLoading" class="small text-muted">
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Cargando asientos...
+            </div>
+          </div>
+
+          <div *ngIf="accountingError" class="alert alert-danger mb-2">
+            {{ accountingError }}
+          </div>
+
+          <div
+            class="table-responsive"
+            *ngIf="!accountingLoading && accountingEntries.length"
+          >
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Debe</th>
+                <th>Haber</th>
+                <th class="text-end">Monto S/</th>
+                <th>Descripción</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr *ngFor="let e of accountingEntries">
+                <td>{{ e.date | date : 'short' }}</td>
+                <td>{{ e.type }}</td>
+                <td>
+                  <div class="fw-semibold">
+                    {{ getAccountCode(e.debitAccount) }} - {{ e.debitAccount }}
+                  </div>
+                </td>
+                <td>
+                  <div class="fw-semibold">
+                    {{ getAccountCode(e.creditAccount) }} - {{ e.creditAccount }}
+                  </div>
+                </td>
+                <td class="text-end">
+                  {{ e.amount | number : '1.2-2' }}
+                </td>
+                <td>{{ e.description || '-' }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div
+            *ngIf="
+              !accountingLoading &&
+              !accountingEntries.length &&
+              !accountingError
+            "
+            class="text-muted small"
+          >
+            No hay asientos registrados para esta venta.
+          </div>
+        </div>
+        <!-- FIN ASIENTOS -->
+
       </ng-container>
     </div>
   </div>

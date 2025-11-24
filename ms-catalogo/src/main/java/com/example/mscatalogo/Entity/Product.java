@@ -16,10 +16,13 @@ public class Product {
     
     @Column(nullable = false)
     private String name;
-    
-    private String unit;
+
+    private String unit;           // unidad base: BOTELLA, UNIDAD, etc.
+
+    private Integer unitsPerBox;   // cuántas unidades trae una caja
+    private Integer unitsPerPack;  // opcional, por si quieres "sixpack" u otro
+
     private String category;
-    private Double weight;
     private String description;
     private Boolean active = true;
 }

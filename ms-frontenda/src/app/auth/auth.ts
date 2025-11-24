@@ -52,4 +52,36 @@ export class AuthService {
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
+  // 🔹 NUEVO: obtener el userName desde el JWT
+  getCurrentUserName(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return null;
+      }
+      const payloadPart = parts[1];
+
+      // Base64URL → Base64
+      const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      const payload: any = JSON.parse(jsonPayload);
+
+      // Ajusta a cómo mandes el claim en el backend
+      return payload.userName || payload.username || payload.sub || null;
+    } catch (e) {
+      console.error('Error decodificando token', e);
+      return null;
+    }
+  }
+
 }

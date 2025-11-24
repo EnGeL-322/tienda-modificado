@@ -7,7 +7,7 @@ import { Sale } from '../../models/sale.model';
   selector: 'app-sale-list',
   standalone: false,
   templateUrl: './sale-list.html',
-  styleUrl: './sale-list.scss',
+  styleUrls: ['./sale-list.scss'],
 })
 export class SaleList implements OnInit {
   sales: Sale[] = [];
@@ -33,7 +33,7 @@ export class SaleList implements OnInit {
     this.saleService.getAll().subscribe({
       next: (res) => {
         this.sales = res;
-        this.applyFilter();
+        this.applyFilter(); // inicializar filtered
         this.loading = false;
       },
       error: () => {
@@ -71,14 +71,40 @@ export class SaleList implements OnInit {
     this.router.navigate(['/ventas/nueva']);
   }
 
-  openDetail(sale: Sale): void {
+  // 👇 ahora sí existe este método
+  goToDetail(sale: Sale): void {
     this.router.navigate(['/ventas', sale.id]);
   }
 
+  // Total “normal” por si lo quieres usar en otro lado
   saleTotal(sale: Sale): number {
-    return sale.items?.reduce(
-      (acc, item) => acc + item.quantity * item.unitPrice,
-      0
-    ) ?? 0;
+    return (
+      sale.items?.reduce(
+        (acc, item) => acc + item.quantity * item.unitPrice,
+        0
+      ) ?? 0
+    );
+  }
+
+  // Cantidad de unidades totales vendidas
+  getSaleItemCount(s: Sale): number {
+    if (!s.items) return 0;
+
+    return s.items.reduce((acc, it) => {
+      const qty = Number(it.quantity) || 0;
+      const unitsPerPack = Number((it as any).unitsPerPackage ?? 1) || 1;
+      return acc + qty * unitsPerPack;
+    }, 0);
+  }
+
+  // Importe total de la venta
+  getSaleTotal(s: Sale): number {
+    if (!s.items) return 0;
+
+    return s.items.reduce((acc, it) => {
+      const qty = Number(it.quantity) || 0;
+      const price = Number(it.unitPrice) || 0;
+      return acc + qty * price;
+    }, 0);
   }
 }

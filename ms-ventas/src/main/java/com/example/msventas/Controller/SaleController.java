@@ -1,6 +1,7 @@
 package com.example.msventas.Controller;
 
 import com.example.msventas.Dto.CreateSaleDto;
+import com.example.msventas.Dto.CreateSaleItemDto;
 import com.example.msventas.Dto.SaleDto;
 import com.example.msventas.Service.SaleService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,15 @@ public class SaleController {
     @PostMapping
     public ResponseEntity<SaleDto> create(@RequestBody CreateSaleDto dto) {
         return ResponseEntity.ok(saleService.create(dto));
+    }
+
+    // NUEVO: agregar ítem a una venta (carrito)
+    @PostMapping("/{id}/items")
+    public ResponseEntity<SaleDto> addItem(
+            @PathVariable Long id,
+            @RequestBody CreateSaleItemDto dto
+    ) {
+        return ResponseEntity.ok(saleService.addItem(id, dto));
     }
 
     @PostMapping("/{id}/complete")

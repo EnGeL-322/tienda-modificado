@@ -1,3 +1,13 @@
+/* ===========================
+   BASE
+   =========================== */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 /* Layout base */
 .app-shell {
   display: flex;
@@ -5,7 +15,9 @@
   background: #020617; // detrás del sidebar
 }
 
-/* SIDEBAR LATERAL */
+/* ===========================
+   SIDEBAR LATERAL
+   =========================== */
 .sidebar {
   width: 240px;
   background: #020617; // muy oscuro
@@ -67,6 +79,7 @@
   gap: 0.45rem;
   margin-bottom: 0.15rem;
   cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
 
   i {
     font-size: 1rem;
@@ -76,6 +89,7 @@
     background: #111827;
     color: #ffffff;
     text-decoration: none;
+    transform: translateX(2px);
   }
 
   &.active {
@@ -96,18 +110,22 @@
   padding-inline: 0.8rem;
   border-color: #f97373;
   color: #fee2e2;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
 
   &:hover {
     background: #f97373;
     border-color: #f97373;
     color: #111827;
+    transform: translateY(-1px);
   }
 }
 
-/* CONTENIDO PRINCIPAL */
+/* ===========================
+   CONTENIDO PRINCIPAL
+   =========================== */
 .main-area {
   flex: 1;
-  background: #f3f4f6;
+  background: radial-gradient(circle at top left, #e5e7eb, #f9fafb);
   padding: 1.5rem;
   overflow: hidden;
 }
@@ -117,12 +135,27 @@
   overflow: auto;
 }
 
-/* Un poco de espacio a las páginas */
+/* Tarjetas un poquito más suaves */
 .main-area .card {
   border-radius: 0.9rem;
+  border: 1px solid #e5e7eb;
 }
 
-/* Responsive: en móviles el menú ocupa arriba */
+/* Scrollbar sutil (solo navegadores que lo soportan) */
+.main-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.main-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.main-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5f5;
+  border-radius: 999px;
+}
+
+/* ===========================
+   RESPONSIVE: MÓVILES
+   =========================== */
 @media (max-width: 768px) {
   .app-shell {
     flex-direction: column;
@@ -133,6 +166,7 @@
     flex-direction: row;
     align-items: center;
     gap: 1rem;
+    padding-bottom: 0.75rem;
   }
 
   .sidebar-nav {
@@ -156,9 +190,148 @@
   }
 }
 
-html,
-body {
-  height: 100%;
-  margin: 0;
+/* ===========================
+   LOGIN / AUTH
+   =========================== */
+
+.auth-wrapper {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, #0d6efd22, transparent 60%),
+    radial-gradient(circle at bottom right, #20c99722, transparent 60%),
+    #f5f7fb;
 }
 
+.auth-background {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/img/pattern.svg'); // opcional
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+/* Tarjeta de login */
+.login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 1.25rem;
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+/* Logo redondo */
+.brand-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0d6efd, #20c997);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.8rem;
+  box-shadow: 0 0.75rem 1.5rem rgba(13, 110, 253, 0.35);
+}
+
+.brand-letter {
+  transform: translateY(1px);
+}
+
+/* Modal registro */
+.register-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.register-modal {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 1rem;
+}
+
+/* Input groups más bonitos SOLO en login/registro */
+.auth-wrapper .input-group-text {
+  background-color: #f5f7fb;
+  border-right: 0;
+}
+
+.auth-wrapper .input-group > .form-control {
+  border-left: 0;
+}
+
+/* El botón del ojito que no corte el borde */
+.auth-wrapper .btn-outline-secondary {
+  border-left: 0;
+}
+
+/* Un poco de margen en móviles, para que no pegue a los bordes */
+@media (max-width: 575.98px) {
+  .login-card {
+    margin: 1.5rem;
+  }
+}
+.sidebar-user {
+  padding: 0.4rem 0.3rem 0.2rem;
+}
+
+.sidebar-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.sidebar-user-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #f9fafb;
+}
+
+.sidebar-user-role {
+  font-size: 0.75rem;
+}
+.sidebar-user {
+  padding: 0.4rem 0.3rem 0.2rem;
+}
+
+.sidebar-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.sidebar-user-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #f9fafb;
+}
+
+.sidebar-user-role {
+  font-size: 0.75rem;
+}

@@ -1,0 +1,194 @@
+:host {
+  display: block;
+}
+
+.accounting-page {
+  background: radial-gradient(circle at top left, #e3f2fd 0, #ffffff 45%);
+}
+
+/* Header de la página */
+.page-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  padding-bottom: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0d6efd, #6610f2);
+  color: #ffffff;
+  box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.35);
+  align-items: center;
+}
+
+/* Cards principales */
+.filters-card,
+.summary-card,
+.balance-card,
+.journal-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.filters-card {
+  border-left: 4px solid #0d6efd;
+}
+
+.summary-card {
+  border-top: 3px solid #0d6efd;
+}
+
+.balance-card {
+  border-top: 3px solid #198754;
+}
+
+.journal-card {
+  border-top: 3px solid #6c757d;
+}
+
+/* Títulos pequeños */
+.card-title-small {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.73rem;
+  color: #6c757d;
+}
+
+/* Stats del resumen */
+.stat-card {
+  border-radius: 0.7rem;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.35rem 0.8rem rgba(0, 0, 0, 0.06);
+}
+
+.stat-compras {
+  border-left: 3px solid #0d6efd;
+}
+
+.stat-ventas {
+  border-left: 3px solid #198754;
+}
+
+.stat-ajustes {
+  border-left: 3px solid #ffc107;
+}
+
+.stat-resultado {
+  border-left: 3px solid #6f42c1;
+}
+
+/* Saldo de cuenta */
+.quick-accounts {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+  padding-bottom: 0.4rem;
+}
+
+.quick-account-chip {
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.balance-highlight {
+  background: #f8fafc;
+  border-radius: 0.7rem;
+}
+
+/* Filtros de asientos */
+.journal-filters {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Lista de asientos */
+.journal-list {
+  margin-top: 0.25rem;
+}
+
+/* Cada asiento */
+.journal-entry {
+  transition: box-shadow 0.12s ease, transform 0.08s ease, border-color 0.12s ease;
+  border-radius: 0.9rem;
+  border-left-width: 4px !important;
+}
+
+.journal-entry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.4rem 0.9rem rgba(0, 0, 0, 0.06);
+}
+
+/* Colores por tipo de asiento */
+.journal-compra {
+  border-left-color: #0d6efd !important;
+}
+
+.journal-venta {
+  border-left-color: #198754 !important;
+}
+
+.journal-ajuste {
+  border-left-color: #fd7e14 !important;
+}
+
+/* Cabecera del asiento */
+.journal-entry-header {
+  margin-bottom: 0.4rem;
+}
+
+.journal-number-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.35rem;
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.journal-compra .journal-number-badge {
+  background-color: #0d6efd;
+}
+
+.journal-venta .journal-number-badge {
+  background-color: #198754;
+}
+
+.journal-ajuste .journal-number-badge {
+  background-color: #fd7e14;
+}
+
+.journal-type-label {
+  font-size: 0.85rem;
+}
+
+/* Badge de referencia */
+.journal-ref-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+}
+
+/* Tabla interna del asiento */
+.journal-table {
+  font-size: 0.8rem;
+}
+
+.journal-table thead th {
+  background-color: #f8fafc;
+  border-bottom-width: 1px;
+}
+
+/* Footer */
+.journal-footer {
+  border-top: 1px dashed rgba(0, 0, 0, 0.06);
+  padding-top: 0.35rem;
+}

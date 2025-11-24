@@ -6,10 +6,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PurchaseOrderDto(
-    Long id,
-    String supplierName,
-    PurchaseOrder.PurchaseStatus status,
-    LocalDateTime createdAt,
-    LocalDateTime receivedAt,
-    List<PurchaseItemDto> items
+        Long id,
+        Long supplierId,
+        String supplierName,
+        PurchaseOrder.PurchaseStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime receivedAt,
+        List<PurchaseItemDto> items
 ) {}

@@ -5,7 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { Login } from './auth/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 
-import { ProductList } from './features/catalogo/pages/product-list/product-list';
+
 import { ProductForm } from './features/catalogo/pages/product-form/product-form';
 
 import { InventoryDetail } from './features/inventario/pages/inventory-detail/inventory-detail';
@@ -17,6 +17,8 @@ import { SaleCart } from './features/ventas/pages/sale-cart/sale-cart';
 import { SaleDetail } from './features/ventas/pages/sale-detail/sale-detail';
 import {PurchaseList} from './features/compras/pages/purchase-list/purchase-list';
 import {SaleList} from './features/ventas/pages/sale-list/sale-list';
+import {AccountingList} from './features/contabilidad/pages/accounting-list/accounting-list';
+import {ProductList} from './features/catalogo/pages/product-list/product-list';
 
 const routes: Routes = [
   // AUTH
@@ -52,6 +54,8 @@ const routes: Routes = [
   { path: 'ventas/nueva', component: SaleCart },
   { path: 'ventas/:id', component: SaleDetail },
 
+  // CONTABILIDAD  👇
+  { path: 'contabilidad', component: AccountingList },
 
   // REDIRECCIONES
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },

@@ -1,43 +1,47 @@
 .auth-wrapper {
-  position: relative;
   min-height: 100vh;
-  background: #f3f4f6;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at top left, #0d6efd22, transparent 60%),
+  radial-gradient(circle at bottom right, #20c99722, transparent 60%),
+  #f5f7fb;
 }
 
 .auth-background {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top left, #2563eb22, transparent),
-  radial-gradient(circle at bottom right, #0ea5e922, transparent);
-  z-index: 0;
+  background-image: url('/assets/img/pattern.svg'); // opcional
+  opacity: 0.08;
+  pointer-events: none;
 }
 
 .login-card {
   position: relative;
   z-index: 1;
-  max-width: 420px;
   width: 100%;
-  border-radius: 1rem;
+  max-width: 420px;
+  border-radius: 1.25rem;
+  backdrop-filter: blur(8px);
 }
 
 .brand-logo {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 999px;
-  background: #2563eb11;
-  display: flex;
+  background: linear-gradient(135deg, #0d6efd, #20c997);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.8rem;
+  box-shadow: 0 0.75rem 1.5rem rgba(13, 110, 253, 0.35);
 }
 
 .brand-letter {
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: #2563eb;
+  transform: translateY(1px);
 }
 
-/* Modal registro */
 .register-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -50,6 +54,25 @@
 
 .register-modal {
   width: 100%;
-  max-width: 380px;
-  border-radius: 0.75rem;
+  max-width: 420px;
+  border-radius: 1rem;
+}
+
+.input-group-text {
+  background-color: #f5f7fb;
+  border-right: 0;
+}
+
+.input-group > .form-control {
+  border-left: 0;
+}
+
+.btn-outline-secondary {
+  border-left: 0;
+}
+
+@media (max-width: 575.98px) {
+  .login-card {
+    margin: 1.5rem;
+  }
 }

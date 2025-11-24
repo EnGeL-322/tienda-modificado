@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record SaleDto(
-    Long id,
-    String customerName,
-    SaleItem.SaleStatus status,
-    LocalDateTime createdAt,
-    LocalDateTime completedAt,
-    List<SaleItemDto> items
+        Long id,
+        Long customerId,
+        String customerName,
+        String customerDni,
+        SaleItem.SaleStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime completedAt,
+        List<SaleItemDto> items
 ) {}

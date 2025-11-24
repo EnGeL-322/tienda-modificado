@@ -27,6 +27,9 @@ export class Login {
   regSuccess: string | null = null;
   showRegPassword = false; // 👈 para el ojito del registro
 
+  // Año actual para el footer
+  currentYear = new Date().getFullYear();
+
   constructor(
     private authService: AuthService,
     private router: Router

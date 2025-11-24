@@ -8,7 +8,9 @@ import com.example.msinventory.Repository.InventoryRepository;
 import com.example.msinventory.feign.ProductClient;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,10 +22,12 @@ public class InventoryService {
     private final InventoryMovementRepository movementRepository;
     private final ProductClient productClient;
 
-    public InventoryDto getStock(String productSku) {
-        return inventoryRepository.findByProductSku(productSku)
-                .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("Stock not found"));
+    public Inventory getStock(String sku) {
+        return inventoryRepository.findByProductSku(sku)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Stock not found for sku: " + sku
+                ));
     }
 
     @Transactional

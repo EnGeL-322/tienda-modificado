@@ -133,3 +133,36 @@
   color: #4b5563;
   margin-bottom: 0.5rem;
 }
+@media print {
+  /* Ocultar todo lo que tenga esta clase */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ocultar TODO por defecto */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Mostrar solo el área de boleta */
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  /* Poner la boleta arriba ocupando la página */
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -12,7 +12,10 @@
       <div *ngIf="error" class="alert alert-danger">
         {{ error }}
       </div>
-      <div *ngIf="success" class="alert alert-success d-flex justify-content-between align-items-center">
+      <div
+        *ngIf="success"
+        class="alert alert-success d-flex justify-content-between align-items-center"
+      >
         <span>{{ success }}</span>
         <button
           *ngIf="lastSale"
@@ -27,42 +30,196 @@
       <!-- Datos del cliente -->
       <form (ngSubmit)="submit()" novalidate>
         <div class="row mb-3">
-          <div class="col-md-6">
-            <label class="form-label">Cliente *</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="customerName"
-              name="customerName"
-              placeholder="Nombre del cliente"
-              required
-            />
+          <div class="col-md-4">
+            <label class="form-label">DNI *</label>
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="customerDni"
+                name="customerDni"
+                placeholder="DNI del cliente"
+              />
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="searchCustomer()"
+                [disabled]="searchingCustomer"
+              >
+                <span
+                  *ngIf="searchingCustomer"
+                  class="spinner-border spinner-border-sm me-1"
+                ></span>
+                Buscar
+              </button>
+            </div>
+            <small class="text-muted">
+              Busca por DNI. Si no existe, podrás registrar un nuevo cliente.
+            </small>
+
+            <!-- selector de clientes -->
+            <select
+              class="form-select mt-2"
+              (change)="onCustomerSelectChange($event)"
+              [disabled]="loadingCustomers || customers.length === 0"
+            >
+              <option value="">-- Seleccionar cliente de la lista --</option>
+              <option
+                *ngFor="let c of customers"
+                [value]="c.id"
+                [selected]="selectedCustomer?.id === c.id"
+              >
+                {{ c.name }} - {{ c.dni }}
+              </option>
+            </select>
+
+            <div *ngIf="loadingCustomers" class="small text-muted mt-1">
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Cargando clientes...
+            </div>
+          </div>
+
+          <!-- Cliente encontrado -->
+          <div class="col-md-5" *ngIf="selectedCustomer">
+            <label class="form-label">Cliente seleccionado:</label>
+
+            <div class="border rounded p-2 bg-light">
+              <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                  <div class="fw-bold text-primary mb-0">
+                    {{ selectedCustomer.name }}
+                  </div>
+                  <div class="small text-muted">
+                    DNI: {{ selectedCustomer.dni }}
+                    <span *ngIf="selectedCustomer.phone"> | 📞 {{ selectedCustomer.phone }}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-danger ms-2"
+                  (click)="clearCustomer()"
+                  title="Cambiar cliente"
+                >
+                  <i class="bi bi-x-lg"></i> Cambiar
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Nuevo cliente -->
+          <div class="col-md-5" *ngIf="!selectedCustomer && customerDniSearched">
+            <label class="form-label">Nuevo cliente</label>
+            <div class="row g-2">
+              <div class="col-12">
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="newCustomerName"
+                  name="newCustomerName"
+                  placeholder="Nombre completo"
+                />
+              </div>
+              <div class="col-12">
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="newCustomerPhone"
+                  name="newCustomerPhone"
+                  placeholder="Teléfono (opcional)"
+                />
+              </div>
+              <div class="col-12 d-flex justify-content-end">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm"
+                  (click)="createCustomer()"
+                  [disabled]="creatingCustomer"
+                >
+                  <span
+                    *ngIf="creatingCustomer"
+                    class="spinner-border spinner-border-sm me-1"
+                  ></span>
+                  Guardar cliente
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Carrito -->
+        <!-- ===================== CARRITO ===================== -->
         <div class="table-responsive mb-3">
           <table class="table table-hover align-middle">
             <thead class="table-light">
             <tr>
-              <th style="width: 25%">SKU</th>
-              <th style="width: 20%">Cantidad</th>
-              <th style="width: 20%">P. Unitario</th>
+              <th style="width: 18%">SKU / Producto</th>
+              <th style="width: 18%">Presentación</th>
+              <th style="width: 16%">Cantidad</th>
+              <th style="width: 18%">P. Unitario</th>
+              <th style="width: 18%">P. Sugerido</th>
               <th style="width: 20%" class="text-end">Subtotal</th>
-              <th style="width: 15%"></th>
+              <th style="width: 20%" class="text-end">General</th>
+              <th style="width: 10%"></th>
             </tr>
             </thead>
             <tbody>
             <tr *ngFor="let item of items; let i = index">
+              <!-- SKU + selector de producto -->
               <td>
+                <!-- entrada manual del código -->
                 <input
                   type="text"
                   class="form-control form-control-sm"
                   [(ngModel)]="item.productSku"
-                  name="sku-{{ i }}"
+                  name="skuInput-{{ i }}"
                   placeholder="SKU"
                 />
+
+                <!-- selector de productos del catálogo -->
+                <select
+                  class="form-select form-select-sm mt-1"
+                  [ngModel]="item.productSku"
+                  (ngModelChange)="onProductSelectChange(i, $event)"
+                  name="skuSelect-{{ i }}"
+                  [disabled]="loadingProducts || products.length === 0"
+                >
+                  <option value="">-- Seleccionar producto --</option>
+                  <option *ngFor="let p of products" [value]="p.sku">
+                    {{ p.name }} ({{ p.sku }})
+                  </option>
+                </select>
+
+                <small *ngIf="loadingProducts" class="text-muted">
+                  Cargando productos...
+                </small>
               </td>
+
+              <!-- Presentación -->
+              <td>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="item.unitType"
+                  name="unitType-{{ i }}"
+                >
+                  <option value="UNIDAD">Unidad</option>
+                  <option value="MEDIA_CAJA">Media caja</option>
+                  <option value="CAJA">Caja</option>
+                </select>
+                <small class="text-muted d-block mt-1">
+                  Unid. por presentación:
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control form-control-sm d-inline-block w-auto ms-1"
+                    [(ngModel)]="item.unitsPerPackage"
+                    name="unitsPerPackage-{{ i }}"
+                  />
+                </small>
+              </td>
+
+              <!-- Cantidad -->
               <td>
                 <input
                   type="number"
@@ -72,6 +229,8 @@
                   name="qty-{{ i }}"
                 />
               </td>
+
+              <!-- Precio unitario -->
               <td>
                 <input
                   type="number"
@@ -82,9 +241,39 @@
                   name="price-{{ i }}"
                 />
               </td>
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <small class="text-muted">
+                  Sugerido:
+                  <ng-container *ngIf="getSuggestedPrice(item.productSku) as sug; else noSug">
+                    S/ {{ sug | number:'1.2-2' }}
+                    <span class="ms-1">
+                      (+{{ defaultMargin * 100 | number:'1.0-0' }}%)
+                    </span>
+                  </ng-container>
+                  <ng-template #noSug>—</ng-template>
+                </small>
+
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm p-0"
+                  *ngIf="getSuggestedPrice(item.productSku)"
+                  (click)="applySuggestedPrice(i)"
+                >
+                  Usar
+                </button>
+              </div>
+
+
+              <!-- Subtotal -->
               <td class="text-end fw-semibold">
                 {{ itemSubtotal(item) | number : '1.2-2' }}
               </td>
+
+              <!-- General (con IGV) -->
+              <td class="text-end fw-semibold">
+                {{ itemSubtotalA(item) | number : '1.2-2' }}
+              </td>
+
               <td class="text-end">
                 <button
                   type="button"

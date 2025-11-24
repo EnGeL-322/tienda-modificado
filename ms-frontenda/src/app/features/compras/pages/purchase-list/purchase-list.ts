@@ -84,4 +84,30 @@ export class PurchaseList implements OnInit {
   goToDetail(p: PurchaseOrder): void {
     this.router.navigate(['/compras', p.id]);
   }
+
+  // Cantidad total de unidades de la orden
+  getOrderItemCount(o: PurchaseOrder): number {
+    if (!o.items) return 0;
+
+    return o.items.reduce((acc, it) => {
+      const qty = Number(it.quantity) || 0;
+      const unitsPerPack = Number((it as any).unitsPerPackage ?? 1) || 1;
+      return acc + qty * unitsPerPack;
+    }, 0);
+  }
+
+// Total de la orden (sin IGV, o puedes adaptarlo)
+  getOrderTotal(o: PurchaseOrder): number {
+    if (!o.items) return 0;
+
+    const subtotal = o.items.reduce((total, item) => {
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.unitPrice) || 0;
+      return total + (qty * price);
+    }, 0);
+
+// Aplicamos el 18% al final (1.18)
+    return subtotal * 1.18;
+  }
+
 }

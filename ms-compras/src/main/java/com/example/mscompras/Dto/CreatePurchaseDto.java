@@ -3,6 +3,6 @@ package com.example.mscompras.Dto;
 import java.util.List;
 
 public record CreatePurchaseDto(
-    String supplierName,
-    List<CreatePurchaseItemDto> items
+        Long supplierId,                 // <--- antes supplierName
+        List<CreatePurchaseItemDto> items
 ) {}

@@ -2,13 +2,20 @@
   <!-- HEADER -->
   <div class="page-header">
     <div>
-      <h2 class="page-title">Productos</h2>
+      <h2 class="page-title">
+        <i class="bi bi-box-seam me-2"></i>
+        Productos
+      </h2>
       <p class="page-subtitle">
-        Gestiona el catálogo de productos del hotel.
+        Gestiona el catálogo de productos del Pepian.
       </p>
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge page-chip d-none d-md-inline-flex">
+        {{ products.length }} ítem(s)
+      </span>
+
       <button
         type="button"
         class="btn btn-outline-secondary btn-sm"
@@ -23,8 +30,6 @@
         <i class="bi bi-plus-circle me-1"></i>
         Nuevo producto
       </button>
-
-
     </div>
   </div>
 
@@ -33,7 +38,10 @@
     <!-- Toolbar: buscador + info -->
     <div class="page-card-header">
       <div>
-        <div class="page-card-title">Listado de productos</div>
+        <div class="page-card-title">
+          <i class="bi bi-list-ul me-1"></i>
+          Listado de productos
+        </div>
         <div class="page-card-subtitle">
           {{ products.length }} producto(s) en total
           <span *ngIf="search" class="ms-1 text-muted">
@@ -79,14 +87,20 @@
           <th>Nombre</th>
           <th class="text-center" style="width: 100px;">Unidad</th>
           <th style="width: 160px;">Categoría</th>
-          <th class="text-end" style="width: 120px;">Peso</th>
+          <th class="text-center" style="width: 90px;">Stock</th>
+          <th class="text-center" style="width: 110px;">Nivel stock</th>
           <th class="text-center" style="width: 110px;">Estado</th>
           <th class="text-end" style="width: 120px;">Acciones</th>
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let p of filtered" class="product-row">
-          <td class="fw-semibold text-monospace">
+        <tr
+          *ngFor="let p of filtered"
+          class="product-row"
+          [ngClass]="{ 'product-row-inactive': !p.active }"
+        >
+
+        <td class="fw-semibold text-monospace">
             {{ p.sku }}
           </td>
           <td>
@@ -105,34 +119,54 @@
           </td>
           <td>
             <span *ngIf="p.category; else noCat" class="badge bg-soft-blue">
+              <i class="bi bi-tag me-1"></i>
               {{ p.category }}
             </span>
             <ng-template #noCat>
               <span class="text-muted">Sin categoría</span>
             </ng-template>
           </td>
-          <td class="text-end">
-            <span *ngIf="p.weight as w; else noWeight">
-              {{ w | number : '1.2-2' }} kg
+          <td class="text-center">
+            <span *ngIf="stockBySku[p.sku] !== undefined; else noStock">
+              <span
+                class="stock-chip"
+                [ngClass]="{
+                  'stock-chip-ok': (stockBySku[p.sku] || 0) > 5,
+                  'stock-chip-low': (stockBySku[p.sku] || 0) > 0 && (stockBySku[p.sku] || 0) <= 5,
+                  'stock-chip-zero': (stockBySku[p.sku] || 0) === 0
+                }"
+              >
+                {{ stockBySku[p.sku] }}
+              </span>
             </span>
-            <ng-template #noWeight>
-              <span class="text-muted">—</span>
+            <ng-template #noStock>
+              <span class="text-muted">STOK</span>
             </ng-template>
           </td>
+
+          <!-- Nivel stock (usa tu stockLabel pero en badge) -->
+          <td class="text-center">
+            <span class="badge stock-status-badge">
+              {{ stockLabel(p) }}
+            </span>
+          </td>
+
+          <!-- Activo / Inactivo -->
           <td class="text-center">
             <span
               class="badge-status"
-              [ngClass]="
-                p.active ? 'badge-status-success' : 'badge-status-secondary'
-              "
+              [ngClass]="availabilityClass(p)"
             >
               <span
                 class="status-dot me-1"
-                [ngClass]="p.active ? 'dot-success' : 'dot-secondary'"
+                [ngClass]="availabilityDotClass(p)"
               ></span>
-              {{ p.active ? 'Activo' : 'Inactivo' }}
+              {{ availabilityLabel(p) }}
             </span>
           </td>
+
+
+          <!-- Acciones -->
           <td>
             <div class="table-actions">
               <button
@@ -142,22 +176,13 @@
               >
                 <i class="bi bi-pencil"></i>
               </button>
-              <button
-                class="btn btn-outline-danger btn-sm"
-                type="button"
-                (click)="toggleActive(p)"
-              >
-                <i
-                  class="bi"
-                  [ngClass]="p.active ? 'bi-x-circle' : 'bi-check2-circle'"
-                ></i>
-              </button>
+
             </div>
           </td>
         </tr>
 
         <tr *ngIf="!loading && filtered.length === 0">
-          <td colspan="7" class="text-center text-muted py-4">
+          <td colspan="8" class="text-center text-muted py-4">
             <div class="empty-state">
               <div class="empty-icon mb-2">📭</div>
               <div class="fw-semibold mb-1">

@@ -1,32 +1,58 @@
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="container py-4 inventory-page">
+  <div class="d-flex justify-content-between align-items-center mb-3 page-header">
     <div>
       <h2 class="h4 mb-0">Inventario</h2>
       <small class="text-muted">Consulta de stock y movimientos por SKU</small>
     </div>
+    <div class="page-chip d-none d-md-inline-flex">
+      Control de stock
+    </div>
   </div>
 
   <!-- Buscador -->
-  <div class="card shadow-sm mb-3">
+  <div class="card shadow-sm mb-3 search-card">
     <div class="card-body">
       <form
-        class="row g-2 align-items-center"
+        class="row g-3 align-items-end"
         (ngSubmit)="search()"
         novalidate
       >
-        <div class="col-md-4">
+        <div class="col-md-5">
           <label class="form-label mb-1">SKU del producto</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="sku"
-            name="sku"
-            placeholder="Ej: PROD-001"
-          />
+          <div class="input-group sku-input-group">
+            <span class="input-group-text">
+              <i class="bi bi-box-seam"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="sku"
+              name="sku"
+              placeholder="Ej: PROD-001"
+            />
+          </div>
+
+          <!-- Selector de productos del catálogo -->
+          <select
+            class="form-select mt-2 product-select"
+            (change)="onProductSelectChange($any($event.target).value)"
+            [disabled]="loadingProducts || products.length === 0"
+          >
+            <option value="">-- Seleccionar producto de la lista --</option>
+            <option *ngFor="let p of products" [value]="p.sku">
+              {{ p.name }} ({{ p.sku }})
+            </option>
+          </select>
+
+          <div *ngIf="loadingProducts" class="small text-muted mt-1">
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Cargando productos...
+          </div>
         </div>
 
-        <div class="col-md-3 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary w-100">
+        <div class="col-md-3">
+          <label class="form-label mb-1">Acción</label>
+          <button type="submit" class="btn btn-primary w-100 search-btn">
             <i class="bi bi-search me-1"></i>
             Buscar
           </button>
@@ -39,29 +65,51 @@
     </div>
   </div>
 
-  <!-- Stock actual -->
+  <!-- Contenido -->
   <div class="row">
+    <!-- Stock actual -->
     <div class="col-lg-4">
-      <div class="card shadow-sm mb-3">
+      <div class="card shadow-sm mb-3 stock-card">
         <div class="card-body">
-          <h5 class="card-title h6 mb-3">Stock actual</h5>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title h6 mb-0 card-title-small">Stock actual</h5>
+            <span *ngIf="inventory" class="badge bg-light text-dark border small">
+              SKU: {{ inventory.productSku }}
+            </span>
+          </div>
 
           <div *ngIf="loadingStock" class="text-center py-3">
             <div class="spinner-border" role="status"></div>
           </div>
 
           <div *ngIf="!loadingStock && inventory">
-            <p class="mb-1">
-              <span class="text-muted">SKU:</span>
-              <span class="fw-semibold">{{ inventory.productSku }}</span>
+            <p class="mb-1" *ngIf="currentProduct">
+              <span class="text-muted">Producto:</span>
+              <span class="fw-semibold ms-1">{{ currentProduct.name }}</span>
             </p>
+
             <p class="mb-1">
               <span class="text-muted">Ubicación:</span>
-              <span>{{ inventory.location || 'No especificada' }}</span>
+              <span class="ms-1">{{ inventory.location || 'No especificada' }}</span>
             </p>
-            <p class="mb-0 fs-5">
-              <span class="text-muted">Cantidad:</span>
-              <span class="fw-bold ms-1">{{ inventory.quantity }}</span>
+
+            <p class="mb-0 fs-5 mt-2">
+              <span class="text-muted">Cantidad actual:</span>
+              <span class="fw-bold ms-1 stock-qty">{{ inventory.quantity }}</span>
+            </p>
+
+            <!-- Resumen de movimientos -->
+            <hr class="my-3" />
+            <p class="mb-1 small text-muted">
+              Entradas:
+              <span class="fw-semibold text-success ms-1">{{ totalEntradas }}</span>
+              &nbsp; | &nbsp;
+              Salidas:
+              <span class="fw-semibold text-danger ms-1">{{ totalSalidas }}</span>
+            </p>
+            <p class="mb-0 small text-muted">
+              Saldo calculado por movimientos:
+              <span class="fw-semibold ms-1">{{ saldoCalculado }}</span>
             </p>
           </div>
 
@@ -69,7 +117,7 @@
             *ngIf="!loadingStock && !inventory && !error"
             class="text-muted small"
           >
-            Busca un SKU para ver su stock.
+            Busca un SKU o selecciona un producto para ver su stock.
           </div>
         </div>
       </div>
@@ -77,10 +125,47 @@
 
     <!-- Movimientos -->
     <div class="col-lg-8">
-      <div class="card shadow-sm">
+      <div class="card shadow-sm movements-card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="card-title h6 mb-0">Movimientos de inventario</h5>
+            <h5 class="card-title h6 mb-0 card-title-small">Movimientos de inventario</h5>
+
+            <!-- Filtro por tipo -->
+            <div class="btn-group btn-group-sm movement-filter-group" role="group">
+              <button
+                type="button"
+                class="btn"
+                [ngClass]="{
+                  'btn-primary': movementTypeFilter === 'ALL',
+                  'btn-outline-primary': movementTypeFilter !== 'ALL'
+                }"
+                (click)="movementTypeFilter = 'ALL'"
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                class="btn"
+                [ngClass]="{
+                  'btn-success': movementTypeFilter === 'ENTRADA',
+                  'btn-outline-success': movementTypeFilter !== 'ENTRADA'
+                }"
+                (click)="movementTypeFilter = 'ENTRADA'"
+              >
+                Entradas
+              </button>
+              <button
+                type="button"
+                class="btn"
+                [ngClass]="{
+                  'btn-danger': movementTypeFilter === 'SALIDA',
+                  'btn-outline-danger': movementTypeFilter !== 'SALIDA'
+                }"
+                (click)="movementTypeFilter = 'SALIDA'"
+              >
+                Salidas
+              </button>
+            </div>
           </div>
 
           <div *ngIf="loadingMovements" class="text-center py-3">
@@ -90,14 +175,14 @@
 
           <div *ngIf="!loadingMovements">
             <div
-              *ngIf="movements.length === 0 && inventory"
+              *ngIf="filteredMovements.length === 0 && inventory"
               class="text-muted small py-3"
             >
-              No hay movimientos registrados para este producto.
+              No hay movimientos registrados para este producto con el filtro actual.
             </div>
 
-            <div class="table-responsive" *ngIf="movements.length > 0">
-              <table class="table table-hover align-middle mb-0">
+            <div class="table-responsive" *ngIf="filteredMovements.length > 0">
+              <table class="table table-hover align-middle mb-0 movements-table">
                 <thead class="table-light">
                 <tr>
                   <th>Fecha</th>
@@ -108,7 +193,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr *ngFor="let m of movements">
+                <tr *ngFor="let m of filteredMovements">
                   <td>
                     {{ m.createdAt | date : 'short' }}
                   </td>

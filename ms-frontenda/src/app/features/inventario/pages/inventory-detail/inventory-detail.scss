@@ -2,11 +2,122 @@
   display: block;
 }
 
-.card {
+/* Fondo general suave */
+.inventory-page {
+  background: radial-gradient(circle at top left, #e3f2fd 0, #ffffff 45%);
+}
+
+/* Header */
+.page-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  padding-bottom: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.page-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0d6efd, #20c997);
+  color: #ffffff;
+  box-shadow: 0 0.25rem 0.75rem rgba(13, 110, 253, 0.35);
+  align-items: center;
+}
+
+/* Cards */
+.search-card,
+.stock-card,
+.movements-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.search-card {
+  border-left: 4px solid #0d6efd;
+}
+
+.stock-card {
+  border-top: 3px solid #20c997;
+}
+
+.movements-card {
+  border-top: 3px solid #6c757d;
+}
+
+/* Títulos pequeños */
+.card-title-small {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.73rem;
+  color: #6c757d;
+}
+
+/* Buscador */
+.sku-input-group .input-group-text {
+  border-radius: 0.75rem 0 0 0.75rem;
+  border-right: 0;
+  background-color: #f1f5f9;
+}
+
+.sku-input-group .form-control {
+  border-radius: 0 0.75rem 0.75rem 0;
+  border-left: 0;
+}
+
+.search-card .form-control,
+.search-card .form-select {
+  border-radius: 0.75rem;
+  border-color: #e0e7ff;
+  font-size: 0.9rem;
+}
+
+.search-card .form-control:focus,
+.search-card .form-select:focus {
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.13);
+  border-color: #0d6efd;
+}
+
+.product-select {
+  font-size: 0.85rem;
+}
+
+.search-btn {
   border-radius: 0.75rem;
 }
 
-.table td,
-.table th {
-  vertical-align: middle;
+/* Stock */
+.stock-qty {
+  font-size: 1.4rem;
+}
+
+.stock-card {
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+}
+
+/* Movimientos */
+.movement-filter-group .btn {
+  min-width: 80px;
+}
+
+.movements-table {
+  font-size: 0.83rem;
+}
+
+.movements-table thead th {
+  background-color: #f8fafc;
+  border-bottom-width: 1px;
+}
+
+/* Pequeños efectos */
+.stock-card,
+.movements-card,
+.search-card {
+  transition: box-shadow 0.12s ease, transform 0.08s ease;
+}
+
+.stock-card:hover,
+.movements-card:hover,
+.search-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.4rem 0.9rem rgba(0, 0, 0, 0.06);
 }

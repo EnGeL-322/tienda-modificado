@@ -1,12 +1,58 @@
-:host {
-  display: block;
+.purchase-detail-page {
+  background: radial-gradient(circle at top left, #e3f2fd 0, #ffffff 45%);
 }
 
-.card {
+.receipt-card {
+  border-radius: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 0.4rem 1rem rgba(15, 23, 42, 0.06);
+}
+
+.receipt-header {
+  font-size: 0.9rem;
+}
+
+.receipt-business-name {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.receipt-number {
+  font-size: 0.9rem;
+}
+
+.receipt-section-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.receipt-table-header th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.receipt-table td {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.receipt-notes {
+  font-size: 0.8rem;
+  color: #6c757d;
+  padding: 0.4rem 0.2rem;
+}
+
+.receipt-totals-box {
   border-radius: 0.75rem;
-}
-
-.table td,
-.table th {
-  vertical-align: middle;
+  border: 1px solid #e5e7eb;
+  padding: 0.6rem 0.75rem;
+  max-width: 260px;
+  background: #f9fafb;
 }

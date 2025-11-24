@@ -1,16 +1,20 @@
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h2 class="h4 mb-0">Nueva compra</h2>
-      <small class="text-muted">Registra una orden de compra al proveedor.</small>
+      <h2 class="h4 mb-0">Nueva orden de compra</h2>
+      <small class="text-muted">
+        Registra una compra con varios productos vinculada a un proveedor.
+      </small>
     </div>
   </div>
 
   <div class="card shadow-sm">
     <div class="card-body">
+      <!-- Mensajes -->
       <div *ngIf="error" class="alert alert-danger">
         {{ error }}
       </div>
+
       <div
         *ngIf="success"
         class="alert alert-success d-flex justify-content-between align-items-center"
@@ -27,44 +31,276 @@
       </div>
 
       <form (ngSubmit)="submit()" novalidate>
-        <!-- Proveedor -->
+        <!-- ===================== PROVEEDOR ===================== -->
         <div class="row mb-3">
           <div class="col-md-6">
             <label class="form-label">Proveedor *</label>
+
+            <!-- Búsqueda por texto -->
             <input
               type="text"
               class="form-control"
-              [(ngModel)]="supplierName"
-              name="supplierName"
-              placeholder="Nombre del proveedor"
-              required
+              name="supplierSearch"
+              [(ngModel)]="supplierSearch"
+              (ngModelChange)="onSupplierSearchChange($event)"
+              placeholder="Escribe nombre o RUC del proveedor"
             />
+
+            <!-- Selector de todos los proveedores -->
+            <select
+              class="form-select mt-2"
+              (change)="onSupplierSelectChange($any($event.target).value)"
+              [disabled]="loadingSuppliers || suppliers.length === 0"
+            >
+              <option value="">-- Seleccionar de la lista --</option>
+              <option
+                *ngFor="let s of suppliers"
+                [value]="s.id"
+                [selected]="selectedSupplier?.id === s.id"
+              >
+                {{ s.name }}
+                <span *ngIf="s.ruc"> ({{ s.ruc }})</span>
+              </option>
+            </select>
+
+            <small class="text-muted d-block mt-1">
+              Puedes buscar escribiendo o seleccionar directamente de la lista.
+            </small>
+
+            <div *ngIf="loadingSuppliers" class="small text-muted mt-1">
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Cargando proveedores...
+            </div>
+          </div>
+
+          <!-- Proveedor seleccionado -->
+          <div class="col-md-6" *ngIf="selectedSupplier">
+            <label class="form-label">Proveedor seleccionado</label>
+            <div
+              class="border rounded p-2 bg-light d-flex justify-content-between align-items-start"
+            >
+              <div>
+                <div class="fw-semibold mb-1">
+                  {{ selectedSupplier.name }}
+                </div>
+                <div class="small text-muted">
+                  <span *ngIf="selectedSupplier.ruc">
+                    RUC: {{ selectedSupplier.ruc }}
+                  </span>
+                  <span *ngIf="selectedSupplier.phone">
+                    • Tel: {{ selectedSupplier.phone }}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary ms-2"
+                (click)="clearSupplier()"
+              >
+                Cambiar
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Items (carrito) -->
+        <!-- SUGERENCIAS DE PROVEEDORES -->
+        <div class="row mb-3" *ngIf="!selectedSupplier && supplierSearchTouched">
+          <div class="col-md-8">
+            <ng-container
+              *ngIf="filteredSuppliers.length > 0; else noSuppliers"
+            >
+              <div class="list-group small shadow-sm">
+                <button
+                  type="button"
+                  class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                  *ngFor="let s of filteredSuppliers | slice : 0 : 8"
+                  (click)="selectSupplier(s)"
+                >
+                  <div>
+                    <div class="fw-semibold">{{ s.name }}</div>
+                    <div class="text-muted">
+                      <span *ngIf="s.ruc">RUC: {{ s.ruc }}</span>
+                      <span *ngIf="s.phone"> • Tel: {{ s.phone }}</span>
+                    </div>
+                  </div>
+                  <i class="bi bi-check2-circle"></i>
+                </button>
+              </div>
+            </ng-container>
+
+            <ng-template #noSuppliers>
+              <div class="alert alert-info py-2 mb-0">
+                No se encontraron proveedores con ese texto. Puedes registrarlo
+                como nuevo.
+              </div>
+            </ng-template>
+          </div>
+
+          <div
+            class="col-md-4 d-flex align-items-start justify-content-md-end mt-2 mt-md-0"
+          >
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              (click)="showNewSupplierForm = !showNewSupplierForm"
+            >
+              <i class="bi bi-person-plus me-1"></i>
+              {{
+                showNewSupplierForm
+                  ? 'Cancelar nuevo proveedor'
+                  : 'Registrar nuevo proveedor'
+              }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ALTA RÁPIDA DE PROVEEDOR -->
+        <div class="row mb-4" *ngIf="showNewSupplierForm && !selectedSupplier">
+          <div class="col-md-8">
+            <div class="border rounded p-3 bg-light">
+              <h6 class="mb-3">Nuevo proveedor</h6>
+
+              <div class="row g-2">
+                <div class="col-sm-6">
+                  <label class="form-label">Nombre *</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    name="newSupplierName"
+                    [(ngModel)]="newSupplierName"
+                    placeholder="Razón social / nombre"
+                  />
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">RUC</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    name="newSupplierRuc"
+                    [(ngModel)]="newSupplierRuc"
+                    placeholder="RUC"
+                  />
+                </div>
+
+                <div class="col-sm-6">
+                  <label class="form-label">Teléfono</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    name="newSupplierPhone"
+                    [(ngModel)]="newSupplierPhone"
+                    placeholder="Teléfono"
+                  />
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Email</label>
+                  <input
+                    type="email"
+                    class="form-control form-control-sm"
+                    name="newSupplierEmail"
+                    [(ngModel)]="newSupplierEmail"
+                    placeholder="Correo electrónico"
+                  />
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Dirección</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    name="newSupplierAddress"
+                    [(ngModel)]="newSupplierAddress"
+                    placeholder="Dirección"
+                  />
+                </div>
+
+                <div class="col-12 d-flex justify-content-end mt-2">
+                  <button
+                    type="button"
+                    class="btn btn-outline-primary btn-sm"
+                    (click)="createSupplier()"
+                    [disabled]="creatingSupplier"
+                  >
+                    <span
+                      *ngIf="creatingSupplier"
+                      class="spinner-border spinner-border-sm me-1"
+                    ></span>
+                    Guardar proveedor
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== TABLA DE ITEMS ===================== -->
         <div class="table-responsive mb-3">
           <table class="table table-hover align-middle">
             <thead class="table-light">
             <tr>
-              <th style="width: 25%">SKU</th>
-              <th style="width: 20%">Cantidad</th>
-              <th style="width: 20%">P. Unitario</th>
+              <th style="width: 18%">SKU / Producto</th>
+              <th style="width: 18%">Presentación</th>
+              <th style="width: 16%">Cantidad</th>
+              <th style="width: 18%">P. Unitario</th>
               <th style="width: 20%" class="text-end">Subtotal</th>
-              <th style="width: 15%"></th>
+              <th style="width: 20%" class="text-end">General</th>
+              <th style="width: 10%"></th>
             </tr>
             </thead>
             <tbody>
             <tr *ngFor="let item of items; let i = index">
+              <!-- SKU + selector de producto -->
               <td>
                 <input
                   type="text"
                   class="form-control form-control-sm"
                   [(ngModel)]="item.productSku"
-                  name="sku-{{ i }}"
+                  name="skuInput-{{ i }}"
                   placeholder="SKU"
                 />
+
+                <select
+                  class="form-select form-select-sm mt-1"
+                  [ngModel]="item.productSku"
+                  (ngModelChange)="onProductSelectChange(i, $event)"
+                  name="skuSelect-{{ i }}"
+                  [disabled]="loadingProducts || products.length === 0"
+                >
+                  <option value="">-- Seleccionar producto --</option>
+                  <option *ngFor="let p of products" [value]="p.sku">
+                    {{ p.name }} ({{ p.sku }})
+                  </option>
+                </select>
+
+                <small *ngIf="loadingProducts" class="text-muted">
+                  Cargando productos...
+                </small>
               </td>
+
+              <!-- Presentación -->
+              <td>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="item.unitType"
+                  name="unitType-{{ i }}"
+                >
+                  <option value="UNIDAD">Unidad</option>
+                  <option value="MEDIA_CAJA">Media caja</option>
+                  <option value="CAJA">Caja</option>
+                </select>
+                <small class="text-muted d-block mt-1">
+                  Unid. por presentación:
+                  <input
+                    type="number"
+                    min="1"
+                    class="form-control form-control-sm d-inline-block w-auto ms-1"
+                    [(ngModel)]="item.unitsPerPackage"
+                    name="unitsPerPackage-{{ i }}"
+                  />
+                </small>
+              </td>
+
+              <!-- Cantidad -->
               <td>
                 <input
                   type="number"
@@ -74,6 +310,8 @@
                   name="qty-{{ i }}"
                 />
               </td>
+
+              <!-- Precio unitario -->
               <td>
                 <input
                   type="number"
@@ -84,9 +322,18 @@
                   name="price-{{ i }}"
                 />
               </td>
+
+              <!-- Subtotal sin IGV -->
               <td class="text-end fw-semibold">
                 {{ itemSubtotal(item) | number : '1.2-2' }}
               </td>
+
+              <!-- Subtotal con IGV -->
+              <td class="text-end fw-semibold">
+                {{ itemSubtotalA(item) | number : '1.2-2' }}
+              </td>
+
+              <!-- Eliminar fila -->
               <td class="text-end">
                 <button
                   type="button"
@@ -102,7 +349,7 @@
           </table>
         </div>
 
-        <!-- Total y acciones -->
+        <!-- ===================== TOTAL Y BOTONES ===================== -->
         <div class="d-flex justify-content-between align-items-center">
           <button
             type="button"
@@ -118,7 +365,11 @@
             <div class="fw-semibold fs-5">
               Total: {{ total | number : '1.2-2' }}
             </div>
-            <button type="submit" class="btn btn-primary" [disabled]="loading">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="loading"
+            >
               <span
                 *ngIf="loading"
                 class="spinner-border spinner-border-sm me-2"

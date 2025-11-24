@@ -20,9 +20,11 @@ export class ProductForm implements OnInit {
   name = '';
   unit: string | null = null;
   category: string | null = null;
-  weight: number | null = null;
   description: string | null = null;
   active = true;
+  unitsPerBox: number | null = null;
+  unitsPerPack: number | null = null;
+
 
   // estado UI
   loading = false;
@@ -55,8 +57,9 @@ export class ProductForm implements OnInit {
         this.name = p.name;
         this.unit = p.unit;
         this.category = p.category;
-        this.weight = p.weight;
         this.description = p.description;
+        this.unitsPerBox = p.unitsPerBox ?? null;
+        this.unitsPerPack = p.unitsPerPack ?? null;
         this.active = p.active;
         this.loading = false;
       },
@@ -68,8 +71,8 @@ export class ProductForm implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.sku.trim() || !this.name.trim()) {
-      this.error = 'SKU y nombre son obligatorios';
+    if (!this.name.trim()) {
+      this.error = 'El nombre es obligatorio';
       this.success = null;
       return;
     }
@@ -79,13 +82,15 @@ export class ProductForm implements OnInit {
     this.success = null;
 
     const dto: CreateProduct = {
-      sku: this.sku.trim(),
+      sku: this.sku.trim() || null,
       name: this.name.trim(),
       unit: this.unit || null,
       category: this.category || null,
-      weight: this.weight ?? null,
       description: this.description || null,
+      unitsPerBox: this.unitsPerBox,
+      unitsPerPack: this.unitsPerPack,
     };
+
 
     const request$ =
       this.editing && this.id != null
@@ -95,10 +100,6 @@ export class ProductForm implements OnInit {
     request$.subscribe({
       next: () => {
         this.loading = false;
-        // si quieres quedarte en el form, puedes mostrar success y quedarte
-        // this.success = this.editing
-        //   ? 'Producto actualizado correctamente'
-        //   : 'Producto registrado correctamente';
         this.router.navigate(['/catalogo/productos']);
       },
       error: () => {
