@@ -23,9 +23,19 @@ interface AccountingJournalEntry {
   type: string;          // COMPRA, VENTA, AJUSTE
   referenceType?: string;
   referenceId?: number;
-  description?: string;  // 👈 descripción del asiento (“por la compra…")
   lines: AccountingJournalLine[];
   journalNumber?: number;
+}
+
+interface CashBankRow {
+  correlativo: number;
+  date: string;
+  description?: string;
+  accountCode: string;
+  accountName: string;
+  debit: number;
+  credit: number;
+  balance: number;
 }
 
 @Component({
@@ -39,11 +49,13 @@ export class AccountingList implements OnInit {
   from = '';
   to = '';
   type: string = ''; // COMPRA | VENTA | AJUSTE | ''
-
-  // Vista seleccionada: Asientos / Libro diario / Caja y bancos
-  selectedBook: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS' = 'ASIENTOS';
-
   journalEntries: AccountingJournalEntry[] = [];
+
+  // Libro caja y bancos
+  cashBankRows: CashBankRow[] = [];
+
+  // Qué vista está activa: asientos / diario / caja-bancos
+  selectedBook: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS' = 'ASIENTOS';
 
   // Resumen general
   summary: AccountingSummaryResponse | null = null;
@@ -51,7 +63,7 @@ export class AccountingList implements OnInit {
   summaryError: string | null = null;
 
   // Saldo por cuenta
-  accountName = 'Resultados'; // p.ej. Inventarios, Caja, Ventas
+  accountName = 'Resultados';
   accountBalance: AccountBalanceResponse | null = null;
   accountLoading = false;
   accountError: string | null = null;
@@ -68,7 +80,7 @@ export class AccountingList implements OnInit {
     maxAmount: null,
   };
 
-  // 👉 Mapa simple de nombres a números de cuenta (fallback)
+  // Mapa simple de nombres a números de cuenta
   private accountCodes: Record<string, string> = {
     'Caja': '10',
     'Bancos': '10',
@@ -79,10 +91,10 @@ export class AccountingList implements OnInit {
     'Compras': '60',
     'Costo de ventas': '69',
     'Ventas': '70',
-    'Resultados': '89', // resultado del ejercicio (aprox)
+    'Resultados': '89',
   };
 
-  // 👉 Botones rápidos de cuentas frecuentes
+  // Botones rápidos
   quickAccounts: string[] = [
     'Caja',
     'Bancos',
@@ -100,7 +112,7 @@ export class AccountingList implements OnInit {
     const today = new Date();
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    this.from = monthStart.toISOString().slice(0, 10); // yyyy-MM-dd
+    this.from = monthStart.toISOString().slice(0, 10);
     this.to = today.toISOString().slice(0, 10);
 
     this.loadAll();
@@ -108,25 +120,13 @@ export class AccountingList implements OnInit {
 
   // === Helpers ===
 
-  selectBook(book: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS'): void {
-    this.selectedBook = book;
-  }
-
   getAccountCode(name?: string | null): string {
     if (!name) return '—';
-    const trimmed = name.trim();
-
-    // Si viene "601 Mercaderías" o "40.111 IGV" → usamos el primer token como código
-    const firstToken = trimmed.split(' ')[0];
-    if (/^[0-9.]+$/.test(firstToken)) {
-      return firstToken;
-    }
-
-    // Si no, usamos el mapa simple
-    return this.accountCodes[trimmed] ?? '—';
+    const key = name.trim();
+    return this.accountCodes[key] ?? '—';
   }
 
-  // Totales para mostrar debajo de la tabla
+  // Totales para asientos agrupados
   get totalEntriesCount(): number {
     return this.filteredEntries.length;
   }
@@ -136,6 +136,15 @@ export class AccountingList implements OnInit {
       const amount = Number(e.amount) || 0;
       return acc + amount;
     }, 0);
+  }
+
+  // Totales para el libro caja y bancos
+  get totalCashDebits(): number {
+    return this.cashBankRows.reduce((sum, r) => sum + (r.debit || 0), 0);
+  }
+
+  get totalCashCredits(): number {
+    return this.cashBankRows.reduce((sum, r) => sum + (r.credit || 0), 0);
   }
 
   // === Cargas principales ===
@@ -158,7 +167,6 @@ export class AccountingList implements OnInit {
     this.loadAccountBalance();
   }
 
-  // para botones rápidos de cuentas
   setQuickAccount(name: string): void {
     this.accountName = name;
     this.loadAccountBalance();
@@ -166,6 +174,10 @@ export class AccountingList implements OnInit {
 
   onFilterChange(): void {
     this.applyEntryFilter();
+  }
+
+  selectBook(book: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS'): void {
+    this.selectedBook = book;
   }
 
   private loadSummary(): void {
@@ -192,20 +204,22 @@ export class AccountingList implements OnInit {
 
     const typeParam = this.type ? this.type : undefined;
 
-    this.accountingService.getEntries(this.from, this.to, typeParam).subscribe({
-      next: (res) => {
-        this.entries = res;
-        this.entriesLoading = false;
-        this.applyEntryFilter();
-      },
-      error: (err) => {
-        console.error('Error cargando asientos contables', err);
-        this.entriesLoading = false;
-        this.entries = [];
-        this.filteredEntries = [];
-        this.entriesError = 'No se pudieron cargar los asientos contables.';
-      },
-    });
+    this.accountingService
+      .getEntries(this.from, this.to, typeParam)
+      .subscribe({
+        next: (res) => {
+          this.entries = res;
+          this.entriesLoading = false;
+          this.applyEntryFilter();
+        },
+        error: (err) => {
+          console.error('Error cargando asientos contables', err);
+          this.entriesLoading = false;
+          this.entries = [];
+          this.filteredEntries = [];
+          this.entriesError = 'No se pudieron cargar los asientos contables.';
+        },
+      });
   }
 
   private loadAccountBalance(): void {
@@ -233,6 +247,8 @@ export class AccountingList implements OnInit {
       });
   }
 
+  // === Procesar filtros y vistas ===
+
   private applyEntryFilter(): void {
     const search = this.filter.search.toLowerCase().trim();
     const min = this.filter.minAmount;
@@ -259,19 +275,16 @@ export class AccountingList implements OnInit {
       return matchesSearch && matchesMin && matchesMax;
     });
 
-    // 👉 importante: reconstruir la vista agrupada por asiento
+    // reconstruir vistas
     this.rebuildJournalView();
+    this.buildCashBankRows();
   }
 
-  private rebuildJournalView(): void {
+  private rebuildJournalView() {
     const groups = new Map<string, AccountingJournalEntry>();
 
     for (const e of this.filteredEntries) {
-      const desc = e.description || '';
-      // Agrupamos también por descripción para que:
-      //  - compra base + IGV (misma desc) salgan como un asiento con 3 líneas
-      //  - destino y cancelación salgan como asientos separados
-      const key = `${e.type}|${e.referenceType}|${e.referenceId}|${desc}`;
+      const key = `${e.type}|${e.referenceType}|${e.referenceId}`;
 
       let g = groups.get(key);
       if (!g) {
@@ -280,7 +293,6 @@ export class AccountingList implements OnInit {
           type: e.type,
           referenceType: e.referenceType,
           referenceId: e.referenceId,
-          description: desc,
           lines: [],
         };
         groups.set(key, g);
@@ -291,7 +303,7 @@ export class AccountingList implements OnInit {
         side: 'debit' | 'credit',
         amount: number
       ) => {
-        if (!account || amount == null) return;
+        if (!account) return;
         let line = g!.lines.find((l) => l.account === account);
         if (!line) {
           line = { account, debit: 0, credit: 0 };
@@ -309,9 +321,72 @@ export class AccountingList implements OnInit {
     );
 
     list.forEach((j, idx) => {
-      j.journalNumber = idx + 1; // 1, 2, 3, ...
+      j.journalNumber = idx + 1;
     });
 
     this.journalEntries = list;
+  }
+
+  // === Libro caja y bancos ===
+
+  private isCashOrBank(account?: string | null): boolean {
+    if (!account) return false;
+    const a = account.toLowerCase();
+    // Puedes ajustar estas condiciones según tus nombres reales
+    return (
+      a.startsWith('101') ||
+      a.startsWith('10 ') ||
+      a.includes('caja') ||
+      a.includes('banco')
+    );
+  }
+
+  private buildCashBankRows(): void {
+    const rows: CashBankRow[] = [];
+    let runningBalance = 0;
+
+    const cashEntries = this.filteredEntries
+      .filter(
+        (e) =>
+          this.isCashOrBank(e.debitAccount) ||
+          this.isCashOrBank(e.creditAccount)
+      )
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    cashEntries.forEach((e, idx) => {
+      const cashInDebit = this.isCashOrBank(e.debitAccount);
+      const cashInCredit = this.isCashOrBank(e.creditAccount);
+
+      let debit = 0;
+      let credit = 0;
+      let counterpart = '';
+
+      if (cashInDebit) {
+        debit = e.amount;
+        counterpart = e.creditAccount || '';
+      } else if (cashInCredit) {
+        credit = e.amount;
+        counterpart = e.debitAccount || '';
+      }
+
+      runningBalance += debit - credit;
+
+      const parts = counterpart.split(' ');
+      const accountCode = parts[0] || '';
+      const accountName = parts.slice(1).join(' ').trim() || counterpart;
+
+      rows.push({
+        correlativo: idx + 1,
+        date: e.date,
+        description: e.description || '',
+        accountCode,
+        accountName,
+        debit,
+        credit,
+        balance: runningBalance,
+      });
+    });
+
+    this.cashBankRows = rows;
   }
 }
