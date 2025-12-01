@@ -6,6 +6,8 @@ import com.example.msinventory.Entity.AccountingEntry;
 import com.example.msinventory.Repository.AccountingEntryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,6 +53,8 @@ public class AccountingEntryService {
         return repository.save(entry);
     }
 
+
+    // 👉 Para registrar una COMPRA (cuando se recibe la orden)
     // 👉 Para registrar una COMPRA (cuando se recibe la orden)
     @Transactional
     public AccountingEntry createForPurchase(Long purchaseId, Double total) {
@@ -80,9 +84,32 @@ public class AccountingEntryService {
                 "IGV crédito fiscal de compra"
         );
 
+        // 3️⃣ Asiento de destino: 201 Mercaderías vs 611 Mercaderías (por la BASE)
+        createGeneric(
+                "COMPRA",
+                "201 Mercaderías",     // Debe
+                "611 Mercaderías",     // Haber
+                base,
+                "PURCHASE",
+                purchaseId,
+                "Destino de la compra (mercaderías vs variación de existencias)"
+        );
+
+        // 4️⃣ Asiento de cancelación: 42.1 Proveedores vs 101 Caja (por el TOTAL)
+        createGeneric(
+                "COMPRA",
+                "42.1 Proveedores",    // Debe
+                "101 Caja",            // Haber
+                total,
+                "PURCHASE",
+                purchaseId,
+                "Cancelación de la compra (pago al proveedor en efectivo/caja)"
+        );
+
         // devolvemos uno cualquiera (p.ej. el del IGV), el frontend no usa el retorno
         return igvEntry;
     }
+
 
 
     // 👉 Para registrar una VENTA (cuando se completa la venta)
@@ -169,17 +196,47 @@ public class AccountingEntryService {
         );
     }
 
-    // 👉 Listado de asientos para un rango (y opcionalmente tipo)
+    // 👉 Listado de asientos para un rango (y opcionalmente tipo, búsqueda y montos)
     @Transactional(readOnly = true)
-    public List<AccountingEntry> getEntries(LocalDate from, LocalDate to, String type) {
+    public List<AccountingEntry> getEntries(
+            LocalDate from,
+            LocalDate to,
+            String type,
+            String search,
+            Double minAmount,
+            Double maxAmount
+    ) {
         LocalDateTime fromDt = startOfDay(from);
         LocalDateTime toDt   = endOfDay(to);
 
+        // Primero filtramos por fechas y tipo usando el repositorio
+        List<AccountingEntry> baseList;
         if (type == null || type.isBlank()) {
-            return repository.findByDateBetween(fromDt, toDt);
+            baseList = repository.findByDateBetween(fromDt, toDt);
+        } else {
+            baseList = repository.findByTypeAndDateBetween(type.toUpperCase(), fromDt, toDt);
         }
-        return repository.findByTypeAndDateBetween(type.toUpperCase(), fromDt, toDt);
+
+        // Luego aplicamos filtros en memoria (buscar/montos)
+        return baseList.stream()
+                .filter(e -> {
+                    if (search == null || search.isBlank()) return true;
+                    String s = search.toLowerCase();
+                    return (e.getDebitAccount() != null && e.getDebitAccount().toLowerCase().contains(s))
+                            || (e.getCreditAccount() != null && e.getCreditAccount().toLowerCase().contains(s))
+                            || (e.getDescription() != null && e.getDescription().toLowerCase().contains(s));
+                })
+                .filter(e -> {
+                    if (minAmount == null) return true;
+                    return e.getAmount() != null && e.getAmount() >= minAmount;
+                })
+                .filter(e -> {
+                    if (maxAmount == null) return true;
+                    return e.getAmount() != null && e.getAmount() <= maxAmount;
+                })
+                .collect(Collectors.toList());
     }
+
 
     // 👉 Saldos por cuenta: debitos, creditos, neto
     @Transactional(readOnly = true)

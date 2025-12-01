@@ -93,9 +93,9 @@ public class AccountingEntryController {
     }
 
     // 👉 LISTADO DE ASIENTOS EN UN RANGO (para tabla en Dashboard o pantalla contable)
-    //
-    // GET /api/accounting/entries?from=2025-01-01&to=2025-01-31&type=VENTA
-    // type es opcional (COMPRA / VENTA / AJUSTE)
+//
+// GET /api/accounting/entries?from=2025-01-01&to=2025-01-31&type=VENTA
+// type es opcional (COMPRA / VENTA / AJUSTE)
     @GetMapping("/entries")
     public ResponseEntity<?> getEntries(
             @RequestParam("from")
@@ -105,14 +105,21 @@ public class AccountingEntryController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate to,
             @RequestParam(value = "type", required = false)
-            String type
+            String type,
+            @RequestParam(value = "search", required = false)
+            String search,
+            @RequestParam(value = "minAmount", required = false)
+            Double minAmount,
+            @RequestParam(value = "maxAmount", required = false)
+            Double maxAmount
     ) {
         if (from.isAfter(to)) {
             return ResponseEntity.badRequest().body("La fecha 'from' no puede ser mayor que 'to'");
         }
-        List<AccountingEntry> entries = service.getEntries(from, to, type);
+        List<AccountingEntry> entries = service.getEntries(from, to, type, search, minAmount, maxAmount);
         return ResponseEntity.ok(entries);
     }
+
 
     // 👉 SALDO POR CUENTA (Inventarios, Caja, Ventas, Proveedores, etc.)
     //

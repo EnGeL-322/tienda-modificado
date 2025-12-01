@@ -6,8 +6,16 @@
         Resumen de compras, ventas, ajustes y asientos contables.
       </small>
     </div>
+
+    <!-- CHIP: muestra qué vista está activa -->
     <div class="page-chip d-none d-md-inline-flex">
-      Libro diario
+      {{
+        selectedBook === 'CAJA_BANCOS'
+          ? 'Libro caja y bancos'
+          : selectedBook === 'DIARIO'
+            ? 'Libro diario'
+            : 'Asientos contables'
+      }}
     </div>
   </div>
 
@@ -223,7 +231,37 @@
   <div class="card shadow-sm mb-3 journal-card">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="h6 mb-0 card-title-small">Asientos contables</h5>
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="h6 mb-0 card-title-small">Asientos contables</h5>
+          <!-- Toggle de vista -->
+          <div class="book-toggle d-none d-md-inline-flex">
+            <button
+              type="button"
+              class="book-toggle-btn"
+              [class.active]="selectedBook === 'ASIENTOS'"
+              (click)="selectBook('ASIENTOS')"
+            >
+              Asientos
+            </button>
+            <button
+              type="button"
+              class="book-toggle-btn"
+              [class.active]="selectedBook === 'DIARIO'"
+              (click)="selectBook('DIARIO')"
+            >
+              Libro diario
+            </button>
+            <button
+              type="button"
+              class="book-toggle-btn"
+              [class.active]="selectedBook === 'CAJA_BANCOS'"
+              (click)="selectBook('CAJA_BANCOS')"
+            >
+              Caja y bancos
+            </button>
+          </div>
+        </div>
+
         <div *ngIf="entriesLoading" class="small text-muted">
           <span class="spinner-border spinner-border-sm me-1"></span>
           Cargando asientos...
@@ -234,6 +272,7 @@
         {{ entriesError }}
       </div>
 
+      <!-- FILTROS (se usan para la vista de asientos por ahora) -->
       <div class="row g-2 mb-2 journal-filters">
         <div class="col-md-4">
           <label class="form-label small mb-1">Buscar</label>
@@ -268,98 +307,96 @@
         </div>
       </div>
 
-      <!-- LISTA AGRUPADA POR ASIENTO -->
-      <div *ngIf="!entriesLoading && !entriesError" class="journal-list">
-        <ng-container *ngIf="journalEntries && journalEntries.length; else noJournalEntries">
-          <div
-            *ngFor="let j of journalEntries"
-            class="mb-3 journal-entry border rounded p-2 bg-white"
-            [ngClass]="{
-              'journal-compra': j.type === 'COMPRA',
-              'journal-venta': j.type === 'VENTA',
-              'journal-ajuste': j.type === 'AJUSTE'
-            }"
-          >
-            <!-- Cabecera del asiento -->
-            <div class="d-flex justify-content-between align-items-center mb-2 journal-entry-header">
-              <div>
-                <div class="fw-semibold">
-                  <span class="journal-number-badge">
-                    {{ j.journalNumber }}
-                  </span>
-                  <span class="journal-type-label">
-                    {{ j.type === 'COMPRA' ? 'Compra'
-                    : j.type === 'VENTA' ? 'Venta'
-                      : j.type === 'AJUSTE' ? 'Ajuste' : j.type }}
-                  </span>
+      <!-- === VISTA ASIENTOS NORMALES === -->
+      <div *ngIf="selectedBook === 'ASIENTOS'">
+        <div *ngIf="!entriesLoading && !entriesError" class="journal-list">
+          <ng-container *ngIf="journalEntries && journalEntries.length; else noJournalEntries">
+            <div
+              *ngFor="let j of journalEntries"
+              class="mb-3 journal-entry border rounded p-2 bg-white"
+              [ngClass]="{
+                'journal-compra': j.type === 'COMPRA',
+                'journal-venta': j.type === 'VENTA',
+                'journal-ajuste': j.type === 'AJUSTE'
+              }"
+            >
+              <div class="d-flex justify-content-between align-items-center mb-2 journal-entry-header">
+                <div>
+                  <div class="fw-semibold">
+                    <span class="journal-number-badge">{{ j.journalNumber }}</span>
+                    <span class="journal-type-label">
+                      {{ j.type === 'COMPRA' ? 'Compra' :
+                      j.type === 'VENTA' ? 'Venta' :
+                        j.type === 'AJUSTE' ? 'Ajuste' : j.type }}
+                    </span>
+                  </div>
+                  <div class="small text-muted">
+                    {{ j.date | date : 'short' }}
+                  </div>
                 </div>
-                <div class="small text-muted">
-                  {{ j.date | date : 'short' }}
+                <div class="text-end">
+                  <span class="badge bg-light text-dark border small journal-ref-badge">
+                    Ref: {{ j.referenceType || '-' }} {{ j.referenceId || '' }}
+                  </span>
                 </div>
               </div>
 
-              <div class="text-end">
-                <span class="badge bg-light text-dark border small journal-ref-badge">
-                  Ref: {{ j.referenceType || '-' }} {{ j.referenceId || '' }}
-                </span>
+              <div class="table-responsive">
+                <table class="table table-sm mb-0 journal-table">
+                  <thead class="table-light">
+                  <tr>
+                    <th style="width: 15%">Código</th>
+                    <th>Cuenta</th>
+                    <th class="text-end" style="width: 15%">Debe</th>
+                    <th class="text-end" style="width: 15%">Haber</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let l of j.lines">
+                    <td>{{ getAccountCode(l.account) }}</td>
+                    <td>{{ l.account }}</td>
+                    <td class="text-end">
+                      {{ l.debit ? (l.debit | number : '1.2-2') : '' }}
+                    </td>
+                    <td class="text-end">
+                      {{ l.credit ? (l.credit | number : '1.2-2') : '' }}
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
+          </ng-container>
 
-            <!-- Detalle del asiento (las cuentas) -->
-            <div class="table-responsive">
-              <table class="table table-sm mb-0 journal-table">
-                <thead class="table-light">
-                <tr>
-                  <th style="width: 15%">Código</th>
-                  <th>Cuenta</th>
-                  <th class="text-end" style="width: 15%">Debe</th>
-                  <th class="text-end" style="width: 15%">Haber</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr *ngFor="let l of j.lines">
-                  <td>{{ getAccountCode(l.account) }}</td>
-                  <td>{{ l.account }}</td>
-                  <td class="text-end">
-                    {{ l.debit ? (l.debit | number : '1.2-2') : '' }}
-                  </td>
-                  <td class="text-end">
-                    {{ l.credit ? (l.credit | number : '1.2-2') : '' }}
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </ng-container>
-
-        <!-- Mensajes cuando no hay resultados -->
-        <ng-template #noJournalEntries>
-          <div *ngIf="entries && entries.length; else noEntriesAtAll"
-               class="text-center text-muted small py-3">
-            No hay asientos que coincidan con el filtro.
-          </div>
-          <ng-template #noEntriesAtAll>
+          <ng-template #noJournalEntries>
             <div class="text-center text-muted small py-3">
-              No hay asientos registrados en este rango.
+              No hay asientos que coincidan con el filtro.
             </div>
           </ng-template>
-        </ng-template>
+        </div>
+
+        <div
+          *ngIf="!entriesLoading && !entriesError && entries.length"
+          class="mt-2 small text-muted d-flex justify-content-between journal-footer"
+        >
+          <span>
+            Asientos mostrados:
+            <strong>{{ journalEntries.length || 0 }}</strong>
+          </span>
+          <span>
+            Monto total:
+            <strong>S/{{ totalEntriesAmount | number : '1.2-2' }}</strong>
+          </span>
+        </div>
       </div>
 
-      <!-- Resumen de la tabla -->
-      <div
-        *ngIf="!entriesLoading && !entriesError && entries.length"
-        class="mt-2 small text-muted d-flex justify-content-between journal-footer"
-      >
-        <span>
-          Asientos mostrados:
-          <strong>{{ journalEntries.length || 0 }}</strong>
-        </span>
-        <span>
-          Monto total:
-          <strong>S/{{ totalEntriesAmount | number : '1.2-2' }}</strong>
-        </span>
+      <!-- === PLACEHOLDERS PARA LIBRO DIARIO / CAJA (los llenamos luego) === -->
+      <div *ngIf="selectedBook === 'DIARIO'" class="text-muted small py-3">
+        Aquí se mostrará el reporte del <strong>Libro diario</strong> (pendiente de implementar).
+      </div>
+
+      <div *ngIf="selectedBook === 'CAJA_BANCOS'" class="text-muted small py-3">
+        Aquí se mostrará el reporte del <strong>Libro caja y bancos</strong> (pendiente de implementar).
       </div>
     </div>
   </div>

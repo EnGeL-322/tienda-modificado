@@ -11,6 +11,7 @@ interface EntryFilter {
   minAmount: number | null;
   maxAmount: number | null;
 }
+
 interface AccountingJournalLine {
   account: string;
   debit: number;
@@ -39,6 +40,9 @@ export class AccountingList implements OnInit {
   type: string = ''; // COMPRA | VENTA | AJUSTE | ''
   journalEntries: AccountingJournalEntry[] = [];
 
+  // 👉 NUEVO: selector de vista/libro
+  // ASIENTOS = lista normal
+  selectedBook: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS' = 'ASIENTOS';
 
   // Resumen general
   summary: AccountingSummaryResponse | null = null;
@@ -62,54 +66,6 @@ export class AccountingList implements OnInit {
     minAmount: null,
     maxAmount: null,
   };
-
-  private rebuildJournalView() {
-    const groups = new Map<string, AccountingJournalEntry>();
-
-    for (const e of this.filteredEntries) {
-      const key = `${e.type}|${e.referenceType}|${e.referenceId}`;
-
-      let g = groups.get(key);
-      if (!g) {
-        g = {
-          date: e.date,
-          type: e.type,
-          referenceType: e.referenceType,
-          referenceId: e.referenceId,
-          lines: []
-        };
-        groups.set(key, g);
-      }
-
-      const touchAccount = (
-        account: string | null | undefined,
-        side: 'debit' | 'credit',
-        amount: number
-      ) => {
-        if (!account) return;
-        let line = g!.lines.find(l => l.account === account);
-        if (!line) {
-          line = {account, debit: 0, credit: 0};
-          g!.lines.push(line);
-        }
-        line[side] += amount;
-      };
-
-      touchAccount(e.debitAccount, 'debit', e.amount);
-      touchAccount(e.creditAccount, 'credit', e.amount);
-    }
-
-    // Pasar el map a array y ordenar por fecha
-    const list = Array.from(groups.values())
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    // Asignar número de asiento SOLO EN EL FRONT
-    list.forEach((j, idx) => {
-      j.journalNumber = idx + 1; // 1, 2, 3, ...
-    });
-
-    this.journalEntries = list;
-  }
 
   // 👉 Mapa simple de nombres a números de cuenta (PCGE Perú aprox)
   private accountCodes: Record<string, string> = {
@@ -137,8 +93,7 @@ export class AccountingList implements OnInit {
     'Resultados',
   ];
 
-  constructor(private accountingService: AccountingService) {
-  }
+  constructor(private accountingService: AccountingService) {}
 
   ngOnInit(): void {
     const today = new Date();
@@ -151,6 +106,12 @@ export class AccountingList implements OnInit {
   }
 
   // === Helpers ===
+
+  // 👉 cambia entre Asientos / Diario / Caja y bancos
+  selectBook(book: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS'): void {
+    this.selectedBook = book;
+    // Más adelante aquí conectamos generación de libro diario / caja y bancos.
+  }
 
   getAccountCode(name?: string | null): string {
     if (!name) return '—';
@@ -265,7 +226,6 @@ export class AccountingList implements OnInit {
       });
   }
 
-
   private applyEntryFilter(): void {
     const search = this.filter.search.toLowerCase().trim();
     const min = this.filter.minAmount;
@@ -295,7 +255,52 @@ export class AccountingList implements OnInit {
     // 👉 importante: reconstruir la vista agrupada por asiento
     this.rebuildJournalView();
   }
+
+  private rebuildJournalView() {
+    const groups = new Map<string, AccountingJournalEntry>();
+
+    for (const e of this.filteredEntries) {
+      const key = `${e.type}|${e.referenceType}|${e.referenceId}`;
+
+      let g = groups.get(key);
+      if (!g) {
+        g = {
+          date: e.date,
+          type: e.type,
+          referenceType: e.referenceType,
+          referenceId: e.referenceId,
+          lines: []
+        };
+        groups.set(key, g);
+      }
+
+      const touchAccount = (
+        account: string | null | undefined,
+        side: 'debit' | 'credit',
+        amount: number
+      ) => {
+        if (!account) return;
+        let line = g!.lines.find(l => l.account === account);
+        if (!line) {
+          line = {account, debit: 0, credit: 0};
+          g!.lines.push(line);
+        }
+        line[side] += amount;
+      };
+
+      touchAccount(e.debitAccount, 'debit', e.amount);
+      touchAccount(e.creditAccount, 'credit', e.amount);
+    }
+
+    // Pasar el map a array y ordenar por fecha
+    const list = Array.from(groups.values())
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Asignar número de asiento SOLO EN EL FRONT
+    list.forEach((j, idx) => {
+      j.journalNumber = idx + 1; // 1, 2, 3, ...
+    });
+
+    this.journalEntries = list;
+  }
 }
-
-
-
