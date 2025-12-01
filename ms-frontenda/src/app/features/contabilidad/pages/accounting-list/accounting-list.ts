@@ -25,6 +25,7 @@ interface AccountingJournalEntry {
   referenceId?: number;
   lines: AccountingJournalLine[];
   journalNumber?: number;
+  description?: string;  // glosa (tomada del primer detalle)
 }
 
 interface CashBankRow {
@@ -49,12 +50,14 @@ export class AccountingList implements OnInit {
   from = '';
   to = '';
   type: string = ''; // COMPRA | VENTA | AJUSTE | ''
+
+  // Vista agrupada de asientos (para "Asientos" y "Libro diario")
   journalEntries: AccountingJournalEntry[] = [];
 
   // Libro caja y bancos
   cashBankRows: CashBankRow[] = [];
 
-  // Qué vista está activa: asientos / diario / caja-bancos
+  // Qué vista está activa
   selectedBook: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS' = 'ASIENTOS';
 
   // Resumen general
@@ -68,7 +71,7 @@ export class AccountingList implements OnInit {
   accountLoading = false;
   accountError: string | null = null;
 
-  // Asientos
+  // Asientos crudos
   entries: AccountingEntry[] = [];
   filteredEntries: AccountingEntry[] = [];
   entriesLoading = false;
@@ -138,7 +141,7 @@ export class AccountingList implements OnInit {
     }, 0);
   }
 
-  // Totales para el libro caja y bancos
+  // Totales libro caja y bancos
   get totalCashDebits(): number {
     return this.cashBankRows.reduce((sum, r) => sum + (r.debit || 0), 0);
   }
@@ -294,6 +297,7 @@ export class AccountingList implements OnInit {
           referenceType: e.referenceType,
           referenceId: e.referenceId,
           lines: [],
+          description: e.description || undefined,
         };
         groups.set(key, g);
       }
@@ -332,10 +336,10 @@ export class AccountingList implements OnInit {
   private isCashOrBank(account?: string | null): boolean {
     if (!account) return false;
     const a = account.toLowerCase();
-    // Puedes ajustar estas condiciones según tus nombres reales
+    // Ajusta esto a tus nombres reales de cuenta
     return (
-      a.startsWith('101') ||
-      a.startsWith('10 ') ||
+      a.startsWith('101') ||       // 101 Caja
+      a.startsWith('10 ') ||       // 10 Bancos
       a.includes('caja') ||
       a.includes('banco')
     );

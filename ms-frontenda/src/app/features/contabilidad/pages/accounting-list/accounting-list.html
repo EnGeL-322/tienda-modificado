@@ -272,7 +272,7 @@
         {{ entriesError }}
       </div>
 
-      <!-- FILTROS (para asientos y libro caja/bancos) -->
+      <!-- FILTROS (para asientos y libros) -->
       <div class="row g-2 mb-2 journal-filters">
         <div class="col-md-4">
           <label class="form-label small mb-1">Buscar</label>
@@ -307,7 +307,7 @@
         </div>
       </div>
 
-      <!-- === VISTA ASIENTOS NORMALES === -->
+      <!-- === VISTA ASIENTOS (agrupado) === -->
       <div *ngIf="selectedBook === 'ASIENTOS'">
         <div *ngIf="!entriesLoading && !entriesError" class="journal-list">
           <ng-container *ngIf="journalEntries && journalEntries.length; else noJournalEntries">
@@ -390,9 +390,93 @@
         </div>
       </div>
 
-      <!-- === LIBRO DIARIO (placeholder por ahora) === -->
-      <div *ngIf="selectedBook === 'DIARIO'" class="text-muted small py-3">
-        Aquí se mostrará el reporte del <strong>Libro diario</strong> (pendiente de implementar).
+      <!-- === LIBRO DIARIO === -->
+      <div *ngIf="selectedBook === 'DIARIO'">
+        <div *ngIf="!entriesLoading && !entriesError && journalEntries?.length; else diarioEmpty" class="table-responsive">
+          <table class="table table-sm table-bordered diario-table mb-0">
+            <thead class="table-light">
+            <tr>
+              <th rowspan="2" class="align-middle text-center" style="width: 4rem;">N°</th>
+              <th rowspan="2" class="align-middle text-center" style="width: 8rem;">Fecha de la operación</th>
+              <th rowspan="2" class="align-middle">Glosa / descripción de la operación</th>
+              <th colspan="3" class="text-center">Referencia de la operación</th>
+              <th colspan="2" class="text-center">Cuenta contable</th>
+              <th colspan="2" class="text-center">Movimiento</th>
+            </tr>
+            <tr>
+              <th class="text-center">Cód. libro / registro</th>
+              <th class="text-center">N° correlativo</th>
+              <th class="text-center">N° doc. sustentatorio</th>
+              <th class="text-center">Código</th>
+              <th class="text-center">Denominación</th>
+              <th class="text-end">Debe</th>
+              <th class="text-end">Haber</th>
+            </tr>
+            </thead>
+            <tbody>
+            <ng-container *ngFor="let j of journalEntries">
+              <ng-container *ngFor="let l of j.lines; let rowIndex = index">
+                <tr>
+                  <!-- N° correlativo -->
+                  <td *ngIf="rowIndex === 0" [attr.rowspan]="j.lines.length" class="align-middle text-center">
+                    {{ j.journalNumber }}
+                  </td>
+
+                  <!-- Fecha -->
+                  <td *ngIf="rowIndex === 0" [attr.rowspan]="j.lines.length" class="align-middle text-center">
+                    {{ j.date | date:'dd/MM/yyyy' }}
+                  </td>
+
+                  <!-- Glosa / descripción -->
+                  <td *ngIf="rowIndex === 0" [attr.rowspan]="j.lines.length" class="align-middle">
+                    {{ j.description ||
+                  (j.type === 'COMPRA'
+                    ? 'Compra de mercaderías'
+                    : j.type === 'VENTA'
+                      ? 'Venta de mercaderías'
+                      : j.type === 'AJUSTE'
+                        ? 'Ajuste contable'
+                        : (j.referenceType || 'Operación')) }}
+                  </td>
+
+                  <!-- Referencia de la operación -->
+                  <td *ngIf="rowIndex === 0" [attr.rowspan]="j.lines.length" class="align-middle text-center">
+                    {{ j.referenceType || '-' }}
+                  </td>
+                  <td *ngIf="rowIndex === 0" [attr.rowspan]="j.lines.length" class="align-middle text-center">
+                    {{ j.journalNumber }}
+                  </td>
+                  <td *ngIf="rowIndex === 0" [attr.rowspan]="j.lines.length" class="align-middle text-center">
+                    {{ j.referenceId || '-' }}
+                  </td>
+
+                  <!-- Cuenta contable -->
+                  <td class="text-center">
+                    {{ getAccountCode(l.account) }}
+                  </td>
+                  <td>
+                    {{ l.account }}
+                  </td>
+
+                  <!-- Movimiento -->
+                  <td class="text-end">
+                    {{ l.debit ? (l.debit | number:'1.2-2') : '' }}
+                  </td>
+                  <td class="text-end">
+                    {{ l.credit ? (l.credit | number:'1.2-2') : '' }}
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #diarioEmpty>
+          <div class="text-muted small py-3">
+            No hay movimientos para mostrar en el libro diario en este rango de fechas.
+          </div>
+        </ng-template>
       </div>
 
       <!-- === LIBRO CAJA Y BANCOS === -->
