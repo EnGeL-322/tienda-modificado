@@ -55,7 +55,7 @@ public class AccountingEntryService {
 
 
     // 👉 Para registrar una COMPRA (cuando se recibe la orden)
-    // 👉 Para registrar una COMPRA (cuando se recibe la orden)
+// 👉 Para registrar una COMPRA (cuando se recibe la orden)
     @Transactional
     public AccountingEntry createForPurchase(Long purchaseId, Double total) {
         // total viene con IGV
@@ -111,37 +111,50 @@ public class AccountingEntryService {
     }
 
 
-
     // 👉 Para registrar una VENTA (cuando se completa la venta)
     @Transactional
     public AccountingEntry createForSale(Long saleId, Double total) {
         double base = round2(total / (1 + IGV_RATE));
         double igv  = round2(total - base);
 
-        // 1️⃣ 12.1 Clientes vs 70.1 Ventas (base)
+        // 1️⃣ 121 Facturas por cobrar vs 701 Ventas (base)
         createGeneric(
                 "VENTA",
-                "12.1 Clientes",   // Debe
-                "70.1 Ventas",     // Haber
+                "121 Facturas por cobrar",   // Debe
+                "701 Ventas",                // Haber
                 base,
                 "SALE",
                 saleId,
                 "Venta base (sin IGV) registrada desde ms-ventas"
         );
 
-        // 2️⃣ 12.1 Clientes vs 40.111 IGV por pagar (IGV)
-        AccountingEntry igvEntry = createGeneric(
+        // 2️⃣ 121 Facturas por cobrar vs 40111 IGV por pagar (IGV)
+        createGeneric(
                 "VENTA",
-                "12.1 Clientes",            // Debe
-                "40.111 IGV por pagar",     // Haber
+                "121 Facturas por cobrar",   // Debe
+                "40111 IGV por pagar",       // Haber
                 igv,
                 "SALE",
                 saleId,
                 "IGV por pagar de venta"
         );
 
-        return igvEntry;
+        // 3️⃣ Asiento de cancelación / cobro: 101 Caja vs 121 Facturas por cobrar (TOTAL)
+        AccountingEntry cobroEntry = createGeneric(
+                "VENTA",
+                "101 Caja",                  // Debe
+                "121 Facturas por cobrar",   // Haber
+                total,
+                "SALE",
+                saleId,
+                "Cobro de la venta (ingreso a Caja)"
+        );
+
+        // devolvemos el del cobro (igual el front no usa este valor)
+        return cobroEntry;
     }
+
+
 
 
     // 👉 Para registrar un ajuste manual desde inventario (por ejemplo mermas)
