@@ -62,7 +62,13 @@ public class AccountingEntryService {
         double base = round2(total / (1 + IGV_RATE));
         double igv  = round2(total - base);
 
-        // 1️⃣ 60.1 Compras (base) vs 42.1 Proveedores
+        // Textos que quieres ver en el libro diario
+        String descCompra  = "Por la compra de mercaderías (compra N° " + purchaseId + ")";
+        String descDestino = "Por el destino de las mercaderías de la compra N° " + purchaseId;
+        String descCancel  = "Por la cancelación de la factura de la compra N° " + purchaseId;
+
+        // 1️⃣ Compra de mercaderías (60.1 + 40.111 vs 42.1 Proveedores)
+        //    NOTA: ambos asientos usan la MISMA descripción para que se agrupen.
         createGeneric(
                 "COMPRA",
                 "60.1 Compras",        // Debe
@@ -70,10 +76,9 @@ public class AccountingEntryService {
                 base,
                 "PURCHASE",
                 purchaseId,
-                "Compra base (sin IGV) registrada desde ms-compras"
+                descCompra
         );
 
-        // 2️⃣ 40.111 IGV crédito fiscal vs 42.1 Proveedores
         AccountingEntry igvEntry = createGeneric(
                 "COMPRA",
                 "40.111 IGV crédito fiscal",   // Debe
@@ -81,21 +86,21 @@ public class AccountingEntryService {
                 igv,
                 "PURCHASE",
                 purchaseId,
-                "IGV crédito fiscal de compra"
+                descCompra    // misma descripción: "Por la compra de mercaderías..."
         );
 
-        // 3️⃣ Asiento de destino: 201 Mercaderías vs 611 Mercaderías (por la BASE)
+        // 2️⃣ Asiento de destino: 201 Mercaderías vs 611 Variación de existencias
         createGeneric(
                 "COMPRA",
-                "201 Mercaderías",     // Debe
-                "611 Mercaderías",     // Haber
+                "201 Mercaderías",                 // Debe
+                "611 Variación de existencias",    // Haber
                 base,
                 "PURCHASE",
                 purchaseId,
-                "Destino de la compra (mercaderías vs variación de existencias)"
+                descDestino
         );
 
-        // 4️⃣ Asiento de cancelación: 42.1 Proveedores vs 101 Caja (por el TOTAL)
+        // 3️⃣ Asiento de cancelación: 42.1 Proveedores vs 101 Caja (por el TOTAL)
         createGeneric(
                 "COMPRA",
                 "42.1 Proveedores",    // Debe
@@ -103,12 +108,13 @@ public class AccountingEntryService {
                 total,
                 "PURCHASE",
                 purchaseId,
-                "Cancelación de la compra (pago al proveedor en efectivo/caja)"
+                descCancel
         );
 
-        // devolvemos uno cualquiera (p.ej. el del IGV), el frontend no usa el retorno
+        // devolvemos uno cualquiera (el del IGV), el frontend no usa el retorno
         return igvEntry;
     }
+
 
 
     // 👉 Para registrar una VENTA (cuando se completa la venta)
@@ -117,7 +123,10 @@ public class AccountingEntryService {
         double base = round2(total / (1 + IGV_RATE));
         double igv  = round2(total - base);
 
-        // 1️⃣ 121 Facturas por cobrar vs 701 Ventas (base)
+        String descVenta = "Por la venta de mercaderías (venta N° " + saleId + ")";
+        String descCobro = "Por el cobro de la venta N° " + saleId;
+
+        // 1️⃣ 121 Facturas por cobrar vs 701 Ventas (BASE)
         createGeneric(
                 "VENTA",
                 "121 Facturas por cobrar",   // Debe
@@ -125,34 +134,34 @@ public class AccountingEntryService {
                 base,
                 "SALE",
                 saleId,
-                "Venta base (sin IGV) registrada desde ms-ventas"
+                descVenta
         );
 
         // 2️⃣ 121 Facturas por cobrar vs 40111 IGV por pagar (IGV)
-        createGeneric(
+        AccountingEntry igvEntry = createGeneric(
                 "VENTA",
-                "121 Facturas por cobrar",   // Debe
-                "40111 IGV por pagar",       // Haber
+                "121 Facturas por cobrar",      // Debe
+                "40111 IGV por pagar",          // Haber
                 igv,
                 "SALE",
                 saleId,
-                "IGV por pagar de venta"
+                descVenta     // misma descripción: "Por la venta de mercaderías..."
         );
 
-        // 3️⃣ Asiento de cancelación / cobro: 101 Caja vs 121 Facturas por cobrar (TOTAL)
-        AccountingEntry cobroEntry = createGeneric(
+        // 3️⃣ Cobro de la venta: 101 Caja vs 121 Facturas por cobrar (TOTAL)
+        createGeneric(
                 "VENTA",
-                "101 Caja",                  // Debe
-                "121 Facturas por cobrar",   // Haber
+                "101 Caja",                    // Debe
+                "121 Facturas por cobrar",     // Haber
                 total,
                 "SALE",
                 saleId,
-                "Cobro de la venta (ingreso a Caja)"
+                descCobro
         );
 
-        // devolvemos el del cobro (igual el front no usa este valor)
-        return cobroEntry;
+        return igvEntry;
     }
+
 
 
 

@@ -23,8 +23,9 @@ interface AccountingJournalEntry {
   type: string;          // COMPRA, VENTA, AJUSTE
   referenceType?: string;
   referenceId?: number;
+  description?: string;  // 👈 descripción del asiento (“por la compra…")
   lines: AccountingJournalLine[];
-  journalNumber?: number; // 👈 nuevo
+  journalNumber?: number;
 }
 
 @Component({
@@ -38,11 +39,11 @@ export class AccountingList implements OnInit {
   from = '';
   to = '';
   type: string = ''; // COMPRA | VENTA | AJUSTE | ''
-  journalEntries: AccountingJournalEntry[] = [];
 
-  // 👉 NUEVO: selector de vista/libro
-  // ASIENTOS = lista normal
+  // Vista seleccionada: Asientos / Libro diario / Caja y bancos
   selectedBook: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS' = 'ASIENTOS';
+
+  journalEntries: AccountingJournalEntry[] = [];
 
   // Resumen general
   summary: AccountingSummaryResponse | null = null;
@@ -67,7 +68,7 @@ export class AccountingList implements OnInit {
     maxAmount: null,
   };
 
-  // 👉 Mapa simple de nombres a números de cuenta (PCGE Perú aprox)
+  // 👉 Mapa simple de nombres a números de cuenta (fallback)
   private accountCodes: Record<string, string> = {
     'Caja': '10',
     'Bancos': '10',
@@ -107,16 +108,22 @@ export class AccountingList implements OnInit {
 
   // === Helpers ===
 
-  // 👉 cambia entre Asientos / Diario / Caja y bancos
   selectBook(book: 'ASIENTOS' | 'DIARIO' | 'CAJA_BANCOS'): void {
     this.selectedBook = book;
-    // Más adelante aquí conectamos generación de libro diario / caja y bancos.
   }
 
   getAccountCode(name?: string | null): string {
     if (!name) return '—';
-    const key = name.trim();
-    return this.accountCodes[key] ?? '—';
+    const trimmed = name.trim();
+
+    // Si viene "601 Mercaderías" o "40.111 IGV" → usamos el primer token como código
+    const firstToken = trimmed.split(' ')[0];
+    if (/^[0-9.]+$/.test(firstToken)) {
+      return firstToken;
+    }
+
+    // Si no, usamos el mapa simple
+    return this.accountCodes[trimmed] ?? '—';
   }
 
   // Totales para mostrar debajo de la tabla
@@ -256,11 +263,15 @@ export class AccountingList implements OnInit {
     this.rebuildJournalView();
   }
 
-  private rebuildJournalView() {
+  private rebuildJournalView(): void {
     const groups = new Map<string, AccountingJournalEntry>();
 
     for (const e of this.filteredEntries) {
-      const key = `${e.type}|${e.referenceType}|${e.referenceId}`;
+      const desc = e.description || '';
+      // Agrupamos también por descripción para que:
+      //  - compra base + IGV (misma desc) salgan como un asiento con 3 líneas
+      //  - destino y cancelación salgan como asientos separados
+      const key = `${e.type}|${e.referenceType}|${e.referenceId}|${desc}`;
 
       let g = groups.get(key);
       if (!g) {
@@ -269,7 +280,8 @@ export class AccountingList implements OnInit {
           type: e.type,
           referenceType: e.referenceType,
           referenceId: e.referenceId,
-          lines: []
+          description: desc,
+          lines: [],
         };
         groups.set(key, g);
       }
@@ -279,10 +291,10 @@ export class AccountingList implements OnInit {
         side: 'debit' | 'credit',
         amount: number
       ) => {
-        if (!account) return;
-        let line = g!.lines.find(l => l.account === account);
+        if (!account || amount == null) return;
+        let line = g!.lines.find((l) => l.account === account);
         if (!line) {
-          line = {account, debit: 0, credit: 0};
+          line = { account, debit: 0, credit: 0 };
           g!.lines.push(line);
         }
         line[side] += amount;
@@ -292,11 +304,10 @@ export class AccountingList implements OnInit {
       touchAccount(e.creditAccount, 'credit', e.amount);
     }
 
-    // Pasar el map a array y ordenar por fecha
-    const list = Array.from(groups.values())
-      .sort((a, b) => a.date.localeCompare(b.date));
+    const list = Array.from(groups.values()).sort((a, b) =>
+      a.date.localeCompare(b.date)
+    );
 
-    // Asignar número de asiento SOLO EN EL FRONT
     list.forEach((j, idx) => {
       j.journalNumber = idx + 1; // 1, 2, 3, ...
     });

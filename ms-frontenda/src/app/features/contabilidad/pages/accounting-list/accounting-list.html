@@ -365,6 +365,14 @@
                   </tbody>
                 </table>
               </div>
+
+              <!-- Descripción del asiento (por la compra..., por el destino..., etc.) -->
+              <div
+                class="small text-muted mt-1 journal-description"
+                *ngIf="j.description"
+              >
+                {{ j.description }}
+              </div>
             </div>
           </ng-container>
 
